@@ -81,6 +81,17 @@ export async function fetchTemplatesFromPgDatabase(): Promise<CompanyTemplateCon
     const res = await fetch('/api/templates');
     const data = await res.json();
     if (res.ok && data.success && Array.isArray(data.templates)) {
+      // Auto-migrate any custom local templates into PostgreSQL database
+      const localHistory = getStoredTemplateHistory();
+      for (const localTmpl of localHistory) {
+        if (!data.templates.some((dbTmpl: CompanyTemplateConfig) => dbTmpl.id === localTmpl.id)) {
+          fetch('/api/templates', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(localTmpl),
+          }).catch(() => {});
+        }
+      }
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data.templates));
       return data.templates;
     }
