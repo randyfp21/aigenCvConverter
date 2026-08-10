@@ -6,16 +6,22 @@ export async function overlayCvOnPdfTemplate(
   cv: CanonicalCV,
   template: CompanyTemplateConfig,
   lang: TargetLanguage,
-  templatePdfBuffer?: Buffer
+  templateBuffer?: Buffer
 ): Promise<Buffer> {
-  // If no custom target template buffer is provided, fallback to vector renderer
-  if (!templatePdfBuffer || templatePdfBuffer.length < 100) {
+  // If no buffer or buffer is not a valid PDF (%PDF header check), use standard vector PDF renderer
+  if (!templateBuffer || templateBuffer.length < 100) {
+    return await generateReactPdfBuffer(cv, template, lang);
+  }
+
+  const isPdf = templateBuffer.slice(0, 4).toString() === '%PDF';
+  if (!isPdf) {
+    // Buffer is a DOCX file or other format, fallback to standard vector PDF renderer
     return await generateReactPdfBuffer(cv, template, lang);
   }
 
   try {
     // 1. Load the exact PDF document uploaded by the user
-    const pdfDoc = await PDFDocument.load(templatePdfBuffer);
+    const pdfDoc = await PDFDocument.load(templateBuffer);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 

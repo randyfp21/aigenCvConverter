@@ -9,8 +9,14 @@ export async function renderDocxFromTemplate(
   lang: TargetLanguage,
   templateDocxBuffer?: Buffer
 ): Promise<Buffer> {
-  // If no custom target DOCX template buffer is uploaded, fallback to standard programmatic DOCX
+  // If no custom target DOCX template buffer is uploaded or it's not a valid zip/docx file, fallback to standard programmatic DOCX
   if (!templateDocxBuffer || templateDocxBuffer.length < 100) {
+    return await generateFallbackDocx(cv, template, lang);
+  }
+
+  // Check DOCX magic header bytes PK\x03\x04 ('504b0304')
+  const isDocxZip = templateDocxBuffer.slice(0, 4).toString('hex') === '504b0304';
+  if (!isDocxZip) {
     return await generateFallbackDocx(cv, template, lang);
   }
 
