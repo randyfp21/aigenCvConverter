@@ -20,6 +20,7 @@ import { extractCvWithGeminiAI } from '@/lib/extractor/geminiExtractor';
 import { translateCanonicalCv } from '@/lib/translator/translationEngine';
 import { getCompanyTemplate } from '@/lib/templates/companies';
 import { validateCvConversionPipeline } from '@/lib/validation/auditEngine';
+import { generatePdfBuffer } from '@/lib/rendering/pdfRenderer';
 import { overlayCvOnPdfTemplate } from '@/lib/rendering/pdfTemplateOverlay';
 import { renderDocxFromTemplate } from '@/lib/rendering/docxTemplateEngine';
 import { SAMPLE_RANDY_FARHAN_CV } from '@/data/sampleCv';
@@ -89,13 +90,10 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Determine Target Template Buffer:
-    // If templateFile is uploaded, use it. Otherwise use the uploaded file buffer itself so its logo, header, footer, & layout are preserved!
+    // Determine Target Template Buffer ONLY if user explicitly uploaded a custom target template file
     let targetTemplateBuffer: Buffer | undefined;
     if (templateFile) {
       targetTemplateBuffer = Buffer.from(await templateFile.arrayBuffer());
-    } else if (uploadedFileBuffer) {
-      targetTemplateBuffer = uploadedFileBuffer;
     }
 
     // Translate if requested
@@ -123,13 +121,18 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Render Outputs (PDF Overlay & DOCX Placeholder Mapping) using targetTemplateBuffer
-    const pdfBuffer = await overlayCvOnPdfTemplate(
-      processedCv,
-      templateConfig,
-      language,
-      targetTemplateBuffer
-    );
+    // Render Outputs into CLEAN Corporate Company CV (No superimposing on candidate source CV)
+    let pdfBuffer: Buffer;
+    if (targetTemplateBuffer) {
+      pdfBuffer = await overlayCvOnPdfTemplate(
+        processedCv,
+        templateConfig,
+        language,
+        targetTemplateBuffer
+      );
+    } else {
+      pdfBuffer = await generatePdfBuffer(processedCv, templateConfig, language);
+    }
 
     const docxBuffer = await renderDocxFromTemplate(
       processedCv,
