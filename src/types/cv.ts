@@ -68,7 +68,7 @@ export interface ProvenanceSource {
 export interface CanonicalCV {
   personal_information: PersonalInformation;
   role: string;
-  years_of_experience: string; // Junior (1-3 Yrs) | Middle (3-5 Yrs) | Senior (5+ Yrs)
+  years_of_experience: string;
   seniority_level: 'Junior' | 'Middle' | 'Senior';
   total_years_num: number;
   about_me: string;
@@ -110,6 +110,8 @@ export interface CompanyTemplateConfig {
   tagline: string;
   description: string;
   logo_svg: string;
+  company_address?: string;
+  company_phone?: string;
   isCustomUploaded?: boolean;
   uploadedAt?: string;
   templateDocxBuffer?: Buffer;

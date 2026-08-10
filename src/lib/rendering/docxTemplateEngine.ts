@@ -15,26 +15,24 @@ export async function renderDocxFromTemplate(
   if (templateDocxBuffer && templateDocxBuffer.length >= 100 && templateDocxBuffer.slice(0, 4).toString('hex') === '504b0304') {
     docxBaseBuffer = templateDocxBuffer;
   } else {
-    // Generate official company DOCX template containing exact placeholders with logo & styling
     docxBaseBuffer = await createOfficialCompanyDocxTemplate(
       template.company_name,
       template.code,
-      template.theme.primary_color || '#0F172A'
+      template.theme.primary_color || '#0F172A',
+      template.company_address,
+      template.company_phone
     );
   }
 
   try {
-    // 1. Load target DOCX template buffer preserving 100% of headers, footers, logos, tables, fonts & colors
     const zip = new PizZip(docxBaseBuffer);
 
-    // 2. Instantiate Docxtemplater with linebreaks and nullgetter fallback
     const doc = new Docxtemplater(zip, {
       paragraphLoop: true,
       linebreaks: true,
       nullGetter: () => '',
     });
 
-    // 3. Formatted Section Text Strings
     const professionalExperienceText = cv.work_experience
       .map((job) => {
         const companyStr = job.company || 'Company / Enterprise';
@@ -58,7 +56,6 @@ export async function renderDocxFromTemplate(
       .map((c) => `• ${c.name} ${c.issuer ? `(${c.issuer})` : ''}`)
       .join('\n');
 
-    // Array objects for loop tags e.g. {#professional_experience}{position}{/professional_experience}
     const experienceList = cv.work_experience.map((job) => ({
       position: job.position,
       role: job.position,
@@ -89,8 +86,18 @@ export async function renderDocxFromTemplate(
       date: c.date,
     }));
 
-    // Comprehensive Placeholder Dictionary (Covering all capitalization, spaces, underscores & multilingual tags)
+    // Comprehensive Placeholder Dictionary
     const templateData: Record<string, unknown> = {
+      // Company Info Placeholders
+      company_name: template.company_name,
+      Company_name: template.company_name,
+      COMPANY_NAME: template.company_name,
+      company_address: template.company_address || 'Jakarta, Indonesia',
+      Company_address: template.company_address || 'Jakarta, Indonesia',
+      company_phone: template.company_phone || '+62 21 500 8000',
+      Company_phone: template.company_phone || '+62 21 500 8000',
+      company_code: template.code,
+
       // 1. Full Name Placeholders
       Nama_lengkap: cv.personal_information.full_name || 'Candidate',
       nama_lengkap: cv.personal_information.full_name || 'Candidate',
@@ -189,10 +196,8 @@ export async function renderDocxFromTemplate(
       certification_list: certificationList,
     };
 
-    // 4. Render exact placeholder mapping into target DOCX template
     doc.render(templateData);
 
-    // 5. Generate output DOCX buffer preserving 100% of original formatting & elements
     const outputBuffer = doc.getZip().generate({
       type: 'nodebuffer',
       compression: 'DEFLATE',
@@ -204,12 +209,17 @@ export async function renderDocxFromTemplate(
     const fallbackTemplate = await createOfficialCompanyDocxTemplate(
       template.company_name,
       template.code,
-      template.theme.primary_color || '#0F172A'
+      template.theme.primary_color || '#0F172A',
+      template.company_address,
+      template.company_phone
     );
 
     const zip = new PizZip(fallbackTemplate);
     const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true, nullGetter: () => '' });
     doc.render({
+      company_name: template.company_name,
+      company_address: template.company_address || 'Jakarta, Indonesia',
+      company_phone: template.company_phone || '+62 21 500 8000',
       Nama_lengkap: cv.personal_information.full_name || 'Candidate',
       role: cv.role || 'Candidate',
       about_me: cv.about_me || cv.summary || '',

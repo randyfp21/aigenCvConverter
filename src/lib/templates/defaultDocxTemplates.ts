@@ -16,10 +16,18 @@ import {
 /**
  * Creates an official target DOCX template buffer containing exact placeholders:
  * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
- * {professional_experience}, {technical_qualification}, {education}, {certifications}
- * with company header, logo banner, and footers preserved.
+ * {professional_experience}, {technical_qualification}, {education}, {certifications},
+ * {company_name}, {company_address}, {company_phone}
  */
-export async function createOfficialCompanyDocxTemplate(companyName: string, companyCode: string, primaryColorHex: string): Promise<Buffer> {
+export async function createOfficialCompanyDocxTemplate(
+  companyName: string,
+  companyCode: string,
+  primaryColorHex: string,
+  companyAddress = 'Jakarta, Indonesia',
+  companyPhone = '+62 21 500 8000'
+): Promise<Buffer> {
+  const cleanColor = (primaryColorHex || '#0F172A').replace('#', '');
+
   const doc = new Document({
     sections: [
       {
@@ -40,9 +48,10 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 alignment: AlignmentType.RIGHT,
                 children: [
                   new TextRun({
-                    text: `${companyName.toUpperCase()} — CONFIDENTIAL CANDIDATE PROFILE`,
+                    text: `{company_name}`,
+                    bold: true,
                     size: 16,
-                    color: primaryColorHex.replace('#', ''),
+                    color: cleanColor,
                     font: 'Calibri',
                   }),
                 ],
@@ -57,8 +66,8 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 alignment: AlignmentType.CENTER,
                 children: [
                   new TextRun({
-                    text: `Official Document Template of ${companyName} • Standardized Recruitment Engine`,
-                    size: 16,
+                    text: `{company_address}  •  Tel: {company_phone}`,
+                    size: 15,
                     color: '64748B',
                     font: 'Calibri',
                   }),
@@ -68,7 +77,7 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
           }),
         },
         children: [
-          // Company Banner Table Header
+          // Company Banner Table Header with Logo Text
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
@@ -76,11 +85,11 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 children: [
                   new TableCell({
                     width: { size: 100, type: WidthType.PERCENTAGE },
-                    shading: { fill: primaryColorHex.replace('#', '') },
-                    margins: { top: 200, bottom: 200, left: 300, right: 300 },
+                    shading: { fill: cleanColor },
+                    margins: { top: 220, bottom: 220, left: 300, right: 300 },
                     borders: {
                       top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                      bottom: { style: BorderStyle.SINGLE, size: 12, color: primaryColorHex.replace('#', '') },
+                      bottom: { style: BorderStyle.SINGLE, size: 12, color: cleanColor },
                       left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                       right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                     },
@@ -88,7 +97,7 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                       new Paragraph({
                         children: [
                           new TextRun({
-                            text: companyName.toUpperCase(),
+                            text: '{company_name}',
                             bold: true,
                             size: 28,
                             color: 'FFFFFF',
@@ -99,8 +108,8 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                       new Paragraph({
                         children: [
                           new TextRun({
-                            text: `Standardized Executive CV Format (${companyCode})`,
-                            size: 18,
+                            text: '{company_address}  |  {company_phone}',
+                            size: 16,
                             color: 'E2E8F0',
                             font: 'Calibri',
                           }),
@@ -122,7 +131,7 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 text: '{Nama_lengkap}',
                 bold: true,
                 size: 36,
-                color: primaryColorHex.replace('#', ''),
+                color: cleanColor,
                 font: 'Calibri',
               }),
             ],
@@ -160,11 +169,11 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 text: 'SUMMARY ABOUT ME',
                 bold: true,
                 size: 22,
-                color: primaryColorHex.replace('#', ''),
+                color: cleanColor,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColorHex.replace('#', '') } },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: cleanColor } },
             spacing: { before: 200, after: 120 },
           }),
           new Paragraph({
@@ -186,11 +195,11 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 text: 'PROFESSIONAL EXPERIENCE',
                 bold: true,
                 size: 22,
-                color: primaryColorHex.replace('#', ''),
+                color: cleanColor,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColorHex.replace('#', '') } },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: cleanColor } },
             spacing: { before: 200, after: 120 },
           }),
           new Paragraph({
@@ -212,11 +221,11 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                 text: 'TECHNICAL QUALIFICATIONS',
                 bold: true,
                 size: 22,
-                color: primaryColorHex.replace('#', ''),
+                color: cleanColor,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: primaryColorHex.replace('#', '') } },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: cleanColor } },
             spacing: { before: 200, after: 120 },
           }),
           new Paragraph({
@@ -253,7 +262,7 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                             text: 'LIST EDUCATION',
                             bold: true,
                             size: 20,
-                            color: primaryColorHex.replace('#', ''),
+                            color: cleanColor,
                             font: 'Calibri',
                           }),
                         ],
@@ -287,7 +296,7 @@ export async function createOfficialCompanyDocxTemplate(companyName: string, com
                             text: 'LIST CERTIFICATION',
                             bold: true,
                             size: 20,
-                            color: primaryColorHex.replace('#', ''),
+                            color: cleanColor,
                             font: 'Calibri',
                           }),
                         ],

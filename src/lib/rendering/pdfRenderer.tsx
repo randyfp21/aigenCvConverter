@@ -7,7 +7,7 @@ export async function generatePdfBuffer(
   template: CompanyTemplateConfig,
   lang: TargetLanguage
 ): Promise<Buffer> {
-  const { theme, layout, company_name } = template;
+  const { theme, layout, company_name, company_address, company_phone } = template;
   const titles = layout.section_titles;
 
   const styles = StyleSheet.create({
@@ -32,11 +32,11 @@ export async function generatePdfBuffer(
       marginBottom: 16,
     },
     companyName: {
-      fontSize: 10,
+      fontSize: 11,
       color: theme.secondary_color,
       fontWeight: 'bold',
       textTransform: 'uppercase',
-      letterSpacing: 1,
+      letterSpacing: 0.5,
       marginBottom: 4,
     },
     name: {
@@ -44,17 +44,16 @@ export async function generatePdfBuffer(
       fontWeight: 'bold',
       color: layout.header_style === 'banner' ? '#FFFFFF' : theme.primary_color,
     },
-    confidentialTag: {
-      fontSize: 9,
+    companyContactTag: {
+      fontSize: 8.5,
       marginTop: 4,
-      color: layout.header_style === 'banner' ? '#E0F2FE' : '#6B7280',
-      fontStyle: 'italic',
+      color: layout.header_style === 'banner' ? '#E0F2FE' : '#64748B',
     },
     sectionContainer: {
       marginBottom: 14,
     },
     sectionTitle: {
-      fontSize: 12,
+      fontSize: 11,
       fontWeight: 'bold',
       color: theme.primary_color,
       borderBottomWidth: 1,
@@ -136,24 +135,22 @@ export async function generatePdfBuffer(
   });
 
   const PdfDocument = (
-    <Document title={`Standardized CV - ${cv.personal_information.full_name}`}>
+    <Document title={`Candidate Profile - ${cv.personal_information.full_name}`}>
       <Page size="A4" style={styles.page}>
-        {/* Header - Contact Details (Email, Phone, Location) intentionally omitted for privacy */}
         <View style={layout.header_style === 'banner' ? styles.headerBanner : styles.headerStandard}>
-          <Text style={styles.companyName}>{company_name} • Standardized CV</Text>
+          <Text style={styles.companyName}>{company_name}</Text>
           <Text style={styles.name}>{cv.personal_information.full_name || 'Candidate Profile'}</Text>
-          <Text style={styles.confidentialTag}>
-            Confidential Candidate Profile • Internal Reference Standard
+          <Text style={styles.companyContactTag}>
+            {company_address || 'Jakarta, Indonesia'} • Tel: {company_phone || '+62 21 500 8000'}
           </Text>
         </View>
 
-        {/* Dynamic Sections Based on Template Layout */}
         {layout.section_order.map((sectionKey) => {
-          if (sectionKey === 'summary' && cv.summary) {
+          if (sectionKey === 'summary' && (cv.about_me || cv.summary)) {
             return (
               <View key="summary" style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>{titles.summary?.[lang] || 'Summary'}</Text>
-                <Text style={styles.summaryText}>{cv.summary}</Text>
+                <Text style={styles.sectionTitle}>{titles.summary?.[lang] || 'Summary About Me'}</Text>
+                <Text style={styles.summaryText}>{cv.about_me || cv.summary}</Text>
               </View>
             );
           }
@@ -173,7 +170,7 @@ export async function generatePdfBuffer(
                     <Text style={styles.companyText}>{job.company}</Text>
                     {job.responsibilities.map((resp, rIdx) => (
                       <Text key={rIdx} style={styles.bulletItem}>
-                        • {resp}
+                        - {resp}
                       </Text>
                     ))}
                   </View>
@@ -189,7 +186,7 @@ export async function generatePdfBuffer(
                 <View style={styles.skillsWrap}>
                   {cv.technical_qualifications.map((qual, qIdx) => (
                     <Text key={qIdx} style={styles.skillBadge}>
-                      ✓ {qual}
+                      - {qual}
                     </Text>
                   ))}
                 </View>
@@ -200,10 +197,10 @@ export async function generatePdfBuffer(
           if (sectionKey === 'certifications' && cv.certifications.length > 0) {
             return (
               <View key="certifications" style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>{titles.certifications?.[lang] || 'Certifications'}</Text>
+                <Text style={styles.sectionTitle}>{titles.certifications?.[lang] || 'List Certification'}</Text>
                 {cv.certifications.map((cert, cIdx) => (
                   <Text key={cert.id || cIdx} style={styles.certItem}>
-                    • {cert.name} {cert.issuer ? `(${cert.issuer})` : ''} {cert.date ? `- ${cert.date}` : ''}
+                    - {cert.name} {cert.issuer ? `(${cert.issuer})` : ''} {cert.date ? `- ${cert.date}` : ''}
                   </Text>
                 ))}
               </View>
@@ -213,10 +210,10 @@ export async function generatePdfBuffer(
           if (sectionKey === 'education' && cv.education.length > 0) {
             return (
               <View key="education" style={styles.sectionContainer}>
-                <Text style={styles.sectionTitle}>{titles.education?.[lang] || 'Education'}</Text>
+                <Text style={styles.sectionTitle}>{titles.education?.[lang] || 'List Education'}</Text>
                 {cv.education.map((edu, eIdx) => (
                   <Text key={edu.id || eIdx} style={styles.eduItem}>
-                    • {edu.institution} {edu.degree ? `- ${edu.degree}` : ''} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}
+                    - {edu.institution} {edu.degree ? `- ${edu.degree}` : ''} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}
                   </Text>
                 ))}
               </View>
@@ -226,9 +223,8 @@ export async function generatePdfBuffer(
           return null;
         })}
 
-        {/* Standard Footer */}
         <Text style={styles.footer}>
-          Confidential • Standardized Employee Curriculum Vitae • {company_name}
+          {company_name} • {company_address || 'Jakarta, Indonesia'} • Tel: {company_phone || '+62 21 500 8000'}
         </Text>
       </Page>
     </Document>
