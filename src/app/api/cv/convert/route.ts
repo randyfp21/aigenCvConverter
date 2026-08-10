@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateUploadedFile } from '@/lib/security/fileSanitizer';
 import { parsePdfBuffer } from '@/lib/parsers/pdfParser';
 import { parseDocxBuffer } from '@/lib/parsers/docxParser';
-import { extractCvWithGeminiAI } from '@/lib/extractor/geminiExtractor';
+import { extractCvWithGeminiAI, GeminiExtractionResult } from '@/lib/extractor/geminiExtractor';
 import { translateCanonicalCv } from '@/lib/translator/translationEngine';
 import { getCompanyTemplate } from '@/lib/templates/companies';
 import { validateCvConversionPipeline } from '@/lib/validation/auditEngine';
@@ -44,6 +44,13 @@ export async function POST(req: NextRequest) {
       sizeBytes: 2450000,
       mimeType: 'application/pdf',
       extension: 'pdf',
+    };
+
+    let extractionResult: GeminiExtractionResult = {
+      cv: SAMPLE_RANDY_FARHAN_CV,
+      statusLog: ['Sampel data kandidat dimuat.'],
+      modelUsed: 'sample-mode',
+      isFallback: false,
     };
 
     let uploadedFileBuffer: Buffer | undefined;
@@ -83,12 +90,14 @@ export async function POST(req: NextRequest) {
       }
 
       // Extract & Qualify Canonical CV Schema using Gemini AI & File Upload API
-      canonicalCv = await extractCvWithGeminiAI(
+      extractionResult = await extractCvWithGeminiAI(
         parsedDoc.rawText,
         uploadedFileBuffer,
         file.name,
         file.type || 'application/pdf'
       );
+
+      canonicalCv = extractionResult.cv;
     }
 
     // Determine Target Template Buffer ONLY if user explicitly uploaded a custom target template file
@@ -169,6 +178,12 @@ export async function POST(req: NextRequest) {
       template: templateConfig,
       language,
       validationReport,
+      aiStatus: {
+        statusLog: extractionResult.statusLog,
+        modelUsed: extractionResult.modelUsed,
+        isFallback: extractionResult.isFallback,
+        errorMessage: extractionResult.errorMessage,
+      },
       outputs: {
         pdfBase64: `data:application/pdf;base64,${pdfBase64}`,
         docxBase64: `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${docxBase64}`,

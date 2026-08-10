@@ -6,7 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { TemplateSelector } from '@/components/template/TemplateSelector';
 import { LanguageSelector } from '@/components/language/LanguageSelector';
-import { ReviewModal } from '@/components/review/ReviewModal';
+import { ReviewModal, AiStatusInfo } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
 import {
@@ -30,10 +30,12 @@ export default function Home() {
 
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [conversionError, setConversionError] = useState<string | null>(null);
+  const [conversionProgressStep, setConversionProgressStep] = useState<string>('');
 
   const [extractedCv, setExtractedCv] = useState<CanonicalCV | null>(null);
   const [processedCv, setProcessedCv] = useState<CanonicalCV | null>(null);
   const [validationReport, setValidationReport] = useState<FinalValidationReport | null>(null);
+  const [aiStatus, setAiStatus] = useState<AiStatusInfo | undefined>(undefined);
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
   const [outputDocxUrl, setOutputDocxUrl] = useState<string | null>(null);
 
@@ -71,6 +73,7 @@ export default function Home() {
   const handleValidateAndConvert = async () => {
     setIsConverting(true);
     setConversionError(null);
+    setConversionProgressStep('Langkah 1/3: Mengunggah & membaca dokumen CV kandidat...');
 
     try {
       const formData = new FormData();
@@ -84,6 +87,8 @@ export default function Home() {
       formData.append('templateConfig', JSON.stringify(selectedTemplateConfig));
       formData.append('language', targetLanguage);
 
+      setConversionProgressStep('Langkah 2/3: Gemini AI menganalisis kualifikasi & pengalaman proyek...');
+
       const res = await fetch('/api/cv/convert', {
         method: 'POST',
         body: formData,
@@ -95,9 +100,12 @@ export default function Home() {
         throw new Error(data.error || 'CV conversion failed.');
       }
 
+      setConversionProgressStep('Langkah 3/3: Menyusun layout & memformat dokumen...');
+
       setExtractedCv(data.extractedCv);
       setProcessedCv(data.processedCv);
       setValidationReport(data.validationReport);
+      setAiStatus(data.aiStatus);
       setOutputPdfUrl(data.outputs.pdfBase64);
       setOutputDocxUrl(data.outputs.docxBase64);
 
@@ -108,6 +116,7 @@ export default function Home() {
       setConversionError(err instanceof Error ? err.message : 'Unknown error during conversion.');
     } finally {
       setIsConverting(false);
+      setConversionProgressStep('');
     }
   };
 
@@ -135,7 +144,7 @@ export default function Home() {
                 Mode Gemini AI & Profil PT Presisi Aktif
               </p>
               <p className="text-[11px] text-emerald-400/80">
-                Logo, warna separator, warna aksen, dan data footer (alamat, website, telp) diambil 100% dari profil PT yang diset di halaman awal.
+                Progress real-time & diagnosa batas kuota Gemini AI aktif. Logo, warna separator, & data footer diambil dari halaman awal.
               </p>
             </div>
           </div>
@@ -209,6 +218,11 @@ export default function Home() {
                     Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
                     {selectedTemplateConfig.company_name} ({selectedTemplateConfig.code})
                   </p>
+                  {isConverting && conversionProgressStep && (
+                    <p className="text-[10px] font-semibold text-blue-400 animate-pulse mt-0.5">
+                      {conversionProgressStep}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -268,6 +282,7 @@ export default function Home() {
           processedCv={processedCv}
           template={selectedTemplateConfig}
           language={targetLanguage}
+          aiStatus={aiStatus}
           onClose={() => setIsReviewModalOpen(false)}
           onConfirmExport={handleConfirmExport}
         />

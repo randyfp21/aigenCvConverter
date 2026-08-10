@@ -1,6 +1,13 @@
 import React, { useState } from 'react';
 import { CanonicalCV, CompanyTemplateConfig, TargetLanguage } from '@/types/cv';
-import { User, Briefcase, Award, GraduationCap, Code2, ArrowRight, EyeOff, Clock, Sparkles, X, ShieldAlert, CheckCircle2, Globe, FolderGit2, Link } from 'lucide-react';
+import { User, Briefcase, Award, GraduationCap, Code2, ArrowRight, EyeOff, Clock, Sparkles, X, ShieldAlert, CheckCircle2, Globe, FolderGit2, AlertTriangle, Terminal } from 'lucide-react';
+
+export interface AiStatusInfo {
+  statusLog: string[];
+  modelUsed: string;
+  isFallback: boolean;
+  errorMessage?: string;
+}
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -8,6 +15,7 @@ interface ReviewModalProps {
   processedCv: CanonicalCV;
   template: CompanyTemplateConfig;
   language: TargetLanguage;
+  aiStatus?: AiStatusInfo;
   onClose: () => void;
   onConfirmExport: (finalCv: CanonicalCV) => void;
 }
@@ -16,10 +24,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   isOpen,
   processedCv,
   template,
+  aiStatus,
   onClose,
   onConfirmExport,
 }) => {
   const [candidateCv, setCandidateCv] = useState<CanonicalCV>(processedCv);
+  const [showLogs, setShowLogs] = useState<boolean>(false);
 
   if (!isOpen) return null;
 
@@ -39,7 +49,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               <h2 className="text-lg font-bold text-white">Konfirmasi Hasil Analisis CV Gemini AI</h2>
               <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 flex items-center gap-1">
                 <Sparkles className="w-3 h-3" />
-                <span>Analisis AI Selesai</span>
+                <span>Model: {aiStatus?.modelUsed || 'gemini-3-flash-preview'}</span>
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
@@ -50,6 +60,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           <div className="flex items-center space-x-2">
             <button
               type="button"
+              onClick={() => setShowLogs(!showLogs)}
+              className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center gap-1.5"
+            >
+              <Terminal className="w-3.5 h-3.5 text-blue-400" />
+              <span>{showLogs ? 'Sembunyikan Log Progress' : 'Lihat Progress Log AI'}</span>
+            </button>
+            <button
+              type="button"
               onClick={onClose}
               className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-all"
             >
@@ -58,12 +76,43 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           </div>
         </div>
 
+        {/* Diagnostic Banner if Quota Limit Hit or Fallback Used */}
+        {aiStatus?.isFallback && (
+          <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2.5">
+            <AlertTriangle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="font-bold">Perhatian Status Kuota API Gemini AI:</p>
+              <p className="text-[11px] text-amber-300/80 mt-0.5">
+                Model utama Gemini mengalami batas kuota (Rate Limit / Quota Exceeded). Sistem mengalihkan ekstraksi ke parser cadangan untuk memastikan proses konversi Anda tidak gagal.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Real-time Progress Log Section */}
+        {showLogs && aiStatus?.statusLog && (
+          <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 font-mono text-[11px] space-y-1.5 text-slate-300 max-h-40 overflow-y-auto">
+            <p className="text-[10px] uppercase tracking-wider font-bold text-blue-400 mb-2 flex items-center gap-1">
+              <Terminal className="w-3.5 h-3.5" />
+              <span>Catatan Status &amp; Diagnosa Proses Gemini AI:</span>
+            </p>
+            {aiStatus.statusLog.map((log, lIdx) => (
+              <p key={lIdx} className="leading-snug">
+                <span className="text-slate-500 mr-2">[{lIdx + 1}]</span>
+                <span className={log.includes('⚠️') ? 'text-amber-400 font-semibold' : log.includes('✅') ? 'text-emerald-400 font-semibold' : 'text-slate-300'}>
+                  {log}
+                </span>
+              </p>
+            ))}
+          </div>
+        )}
+
         {/* Privacy Safeguard Notice Banner */}
-        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2.5">
-          <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+        <div className="p-3 rounded-xl bg-blue-500/10 border border-blue-500/20 text-blue-300 text-xs flex items-start gap-2.5">
+          <ShieldAlert className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Informasi Kontak vs. Link Portfolio Kandidat:</p>
-            <p className="text-[11px] text-amber-300/80 mt-0.5">
+            <p className="text-[11px] text-blue-300/80 mt-0.5">
               Email Pribadi &amp; No. HP disembunyikan. <strong>Link Portfolio / GitHub / Behance kandidat TETAP DIPERTAHANKAN</strong> untuk menunjukkan karya &amp; rekam jejak kandidat.
             </p>
           </div>
