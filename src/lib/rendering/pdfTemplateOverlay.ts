@@ -8,24 +8,28 @@ export async function overlayCvOnPdfTemplate(
   lang: TargetLanguage,
   templatePdfBuffer?: Buffer
 ): Promise<Buffer> {
-  // If no custom target PDF template buffer provided, use the vector template renderer fallback
+  // If no custom target template buffer is provided, fallback to vector renderer
   if (!templatePdfBuffer || templatePdfBuffer.length < 100) {
     return await generateReactPdfBuffer(cv, template, lang);
   }
 
   try {
-    // 1. Load the exact Target Template PDF uploaded by the user
+    // 1. Load the exact PDF document uploaded by the user
     const pdfDoc = await PDFDocument.load(templatePdfBuffer);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     const pages = pdfDoc.getPages();
+    if (pages.length === 0) {
+      return await generateReactPdfBuffer(cv, template, lang);
+    }
+
     let currentPage = pages[0];
     const { width, height } = currentPage.getSize();
 
-    // Convert hex color to rgb
+    // Convert theme hex colors to pdf-lib rgb
     const hexToRgb = (hex: string) => {
-      const clean = hex.replace('#', '');
+      const clean = (hex || '#0F172A').replace('#', '');
       const r = parseInt(clean.substring(0, 2) || '00', 16) / 255;
       const g = parseInt(clean.substring(2, 4) || '00', 16) / 255;
       const b = parseInt(clean.substring(4, 6) || '00', 16) / 255;
@@ -36,14 +40,14 @@ export async function overlayCvOnPdfTemplate(
     const secondaryColor = hexToRgb(template.theme.secondary_color || '#0284C7');
     const textColor = rgb(0.12, 0.16, 0.22); // Dark slate
 
-    // Calculate starting position below template header
-    let currentY = height - 120;
+    // Starting position below template logo & header region
+    let currentY = height - 125;
     const marginX = 45;
     const contentWidth = width - marginX * 2;
 
     const titles = template.layout.section_titles;
 
-    // Helper: Draw Section Title on PDF Template
+    // Helper: Draw Section Header
     const drawSectionHeader = (titleText: string) => {
       if (currentY < 80) {
         currentPage = pdfDoc.addPage([width, height]);
@@ -69,12 +73,11 @@ export async function overlayCvOnPdfTemplate(
       currentY -= 14;
     };
 
-    // Helper: Draw Text Line with Word Wrap
+    // Helper: Draw Word-Wrapped Text
     const drawWrappedText = (text: string, size = 9, isBold = false, indent = 0) => {
       const font = isBold ? helveticaBold : helvetica;
       const maxLineWidth = contentWidth - indent;
 
-      // Word wrapping math
       const words = text.split(' ');
       let currentLine = '';
 
@@ -121,36 +124,36 @@ export async function overlayCvOnPdfTemplate(
       }
     };
 
-    // 2. Overlay Candidate Full Name
+    // 2. Candidate Name & Role Overlay
     currentPage.drawText(cv.personal_information.full_name || 'Candidate Profile', {
       x: marginX,
       y: currentY,
-      size: 18,
+      size: 17,
       font: helveticaBold,
       color: primaryColor,
     });
 
     currentY -= 14;
-    currentPage.drawText(`Confidential Candidate Profile • Standardized for ${template.company_name}`, {
+    currentPage.drawText(`${cv.role} • ${cv.years_of_experience}`, {
       x: marginX,
       y: currentY,
-      size: 8.5,
-      font: helvetica,
-      color: rgb(0.4, 0.4, 0.4),
+      size: 9.5,
+      font: helveticaBold,
+      color: secondaryColor,
     });
 
-    currentY -= 24;
+    currentY -= 22;
 
-    // 3. Dynamic Section Rendering onto Target PDF
+    // 3. Dynamic Section Overlay
     for (const sectionKey of template.layout.section_order) {
-      if (sectionKey === 'summary' && cv.summary) {
-        drawSectionHeader(titles.summary?.[lang] || 'Summary');
-        drawWrappedText(cv.summary, 9.5, false, 0);
+      if (sectionKey === 'summary' && (cv.about_me || cv.summary)) {
+        drawSectionHeader(titles.summary?.[lang] || 'Summary About Me');
+        drawWrappedText(cv.about_me || cv.summary, 9, false, 0);
         currentY -= 10;
       }
 
       if (sectionKey === 'work_experience' && cv.work_experience.length > 0) {
-        drawSectionHeader(titles.work_experience?.[lang] || 'Work Experience');
+        drawSectionHeader(titles.work_experience?.[lang] || 'Professional Experience');
 
         for (const job of cv.work_experience) {
           if (currentY < 80) {
@@ -158,8 +161,7 @@ export async function overlayCvOnPdfTemplate(
             currentY = height - 60;
           }
 
-          // Job Title & Dates
-          currentPage.drawText(job.position, {
+          currentPage.drawText(job.position || 'Role', {
             x: marginX,
             y: currentY,
             size: 10,
@@ -181,8 +183,7 @@ export async function overlayCvOnPdfTemplate(
 
           currentY -= 12;
 
-          // Company Name
-          currentPage.drawText(job.company, {
+          currentPage.drawText(job.company || 'Company', {
             x: marginX,
             y: currentY,
             size: 9.5,
@@ -192,7 +193,6 @@ export async function overlayCvOnPdfTemplate(
 
           currentY -= 12;
 
-          // Responsibilities
           for (const resp of job.responsibilities) {
             drawWrappedText(`•  ${resp}`, 9, false, 8);
           }
@@ -209,7 +209,7 @@ export async function overlayCvOnPdfTemplate(
       }
 
       if (sectionKey === 'certifications' && cv.certifications.length > 0) {
-        drawSectionHeader(titles.certifications?.[lang] || 'Certifications');
+        drawSectionHeader(titles.certifications?.[lang] || 'List Certification');
         for (const cert of cv.certifications) {
           drawWrappedText(`•  ${cert.name} ${cert.issuer ? `(${cert.issuer})` : ''}`, 9, false, 4);
         }
@@ -217,7 +217,7 @@ export async function overlayCvOnPdfTemplate(
       }
 
       if (sectionKey === 'education' && cv.education.length > 0) {
-        drawSectionHeader(titles.education?.[lang] || 'Education');
+        drawSectionHeader(titles.education?.[lang] || 'List Education');
         for (const edu of cv.education) {
           drawWrappedText(`•  ${edu.institution} ${edu.degree ? `- ${edu.degree}` : ''}`, 9, false, 4);
         }
@@ -225,7 +225,6 @@ export async function overlayCvOnPdfTemplate(
       }
     }
 
-    // Save and return overlaid PDF bytes
     const pdfBytes = await pdfDoc.save();
     return Buffer.from(pdfBytes);
   } catch (err) {

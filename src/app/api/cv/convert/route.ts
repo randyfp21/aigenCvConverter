@@ -44,9 +44,11 @@ export async function POST(req: NextRequest) {
       extension: 'pdf',
     };
 
+    let uploadedFileBuffer: Buffer | undefined;
+
     if (!isSampleMode && file) {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const validation = validateUploadedFile(file.name, file.size, file.type, buffer);
+      uploadedFileBuffer = Buffer.from(await file.arrayBuffer());
+      const validation = validateUploadedFile(file.name, file.size, file.type, uploadedFileBuffer);
 
       if (!validation.isValid || !validation.metadata) {
         return NextResponse.json(
@@ -63,9 +65,9 @@ export async function POST(req: NextRequest) {
       // Extract raw text from source CV
       let parsedDoc;
       if (validation.metadata.extension === 'pdf') {
-        parsedDoc = await parsePdfBuffer(buffer);
+        parsedDoc = await parsePdfBuffer(uploadedFileBuffer);
       } else {
-        parsedDoc = await parseDocxBuffer(buffer);
+        parsedDoc = await parseDocxBuffer(uploadedFileBuffer);
       }
 
       if (!parsedDoc.hasReadableText) {
@@ -82,10 +84,13 @@ export async function POST(req: NextRequest) {
       canonicalCv = extractCanonicalCvFromText(parsedDoc.rawText);
     }
 
-    // Process Target Template Buffer if uploaded
+    // Determine Target Template Buffer:
+    // If templateFile is uploaded, use it. Otherwise use the uploaded file buffer itself so its logo, header, footer, & layout are preserved!
     let targetTemplateBuffer: Buffer | undefined;
     if (templateFile) {
       targetTemplateBuffer = Buffer.from(await templateFile.arrayBuffer());
+    } else if (uploadedFileBuffer) {
+      targetTemplateBuffer = uploadedFileBuffer;
     }
 
     // Translate if requested
@@ -113,7 +118,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Render Outputs (PDF Overlay & DOCX Placeholder Mapping)
+    // Render Outputs (PDF Overlay & DOCX Placeholder Mapping) using targetTemplateBuffer
     const pdfBuffer = await overlayCvOnPdfTemplate(
       processedCv,
       templateConfig,
