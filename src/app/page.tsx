@@ -2,6 +2,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { ThemeProvider } from '@/context/ThemeContext';
 import { Navbar } from '@/components/layout/Navbar';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { TemplateSelector } from '@/components/template/TemplateSelector';
@@ -144,164 +145,170 @@ export default function Home() {
   const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
 
   return (
-    <main className="min-h-screen bg-slate-950 text-slate-100 antialiased font-sans selection:bg-blue-500 selection:text-white">
-      <Navbar />
+    <ThemeProvider>
+      <main className="min-h-screen transition-colors duration-500 bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden">
+        {/* iOS 27 Liquid Glass Background Blobs */}
+        <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/10 via-sky-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Banner Auto Allow & PostgreSQL Active */}
-        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center justify-between">
-          <div className="flex items-center space-x-3">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-              <Database className="w-4 h-4" />
+        <Navbar />
+
+        <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+          {/* Banner Auto Allow & PostgreSQL Active */}
+          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-4 flex items-center justify-between backdrop-blur-2xl shadow-lg">
+            <div className="flex items-center space-x-3">
+              <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
+                <Database className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-300">
+                  Mode iOS 27 Liquid Glass &amp; PostgreSQL Active
+                </p>
+                <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80">
+                  Tampilan Liquid Glass, Light &amp; Dark mode aktif. PostgreSQL <strong>aigencv_db</strong> menyimpan seluruh data PT secara permanen.
+                </p>
+              </div>
             </div>
-            <div>
-              <p className="text-xs font-bold text-emerald-300">
-                Mode PostgreSQL Database Local &amp; Gemini AI Aktif
-              </p>
-              <p className="text-[11px] text-emerald-400/80">
-                Database local PostgreSQL <strong>aigencv_db</strong> menyimpan seluruh profil PT, logo, warna separator, &amp; data footer secara permanen.
-              </p>
-            </div>
+
+            <span className="text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-sm">
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>System Online</span>
+            </span>
           </div>
 
-          <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
-            <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>PostgreSQL Active</span>
-          </span>
-        </div>
+          {/* Hero Section */}
+          <div className="text-center space-y-3 max-w-3xl mx-auto pt-2">
+            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-sky-300 text-xs font-bold backdrop-blur-xl shadow-sm">
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>iOS 27 Liquid Enterprise Qualification Engine</span>
+            </div>
 
-        {/* Hero Section */}
-        <div className="text-center space-y-3 max-w-3xl mx-auto pt-2">
-          <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>Enterprise Corporate CV Qualification Engine</span>
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 dark:from-white dark:via-sky-200 dark:to-slate-300">
+              Corporate Standardized CV Converter
+            </h1>
+
+            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator & aksen, alamat, website, telp), dan hasilkan CV resmi.
+            </p>
           </div>
 
-          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-            Corporate Standardized CV Converter
-          </h1>
+          {/* STEP 1 to 3 Flow */}
+          {currentStep <= 3 && (
+            <div className="space-y-6">
+              <UploadSection
+                selectedFile={selectedFile}
+                fileMetadata={fileMetadata}
+                onFileSelect={handleFileSelect}
+                onUseSample={handleUseSample}
+                isSampleMode={isSampleMode}
+              />
 
-          <p className="text-sm text-slate-400 leading-relaxed">
-            Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator & aksen, alamat, website, telp), dan hasilkan CV resmi.
-          </p>
-        </div>
+              <TemplateSelector
+                selectedTemplateId={selectedTemplateConfig.id}
+                onSelectTemplate={(tmpl) => {
+                  setSelectedTemplateConfig(tmpl);
+                  if (currentStep === 2) setCurrentStep(3);
+                }}
+              />
 
-        {/* STEP 1 to 3 Flow */}
-        {currentStep <= 3 && (
-          <div className="space-y-6">
-            <UploadSection
-              selectedFile={selectedFile}
-              fileMetadata={fileMetadata}
-              onFileSelect={handleFileSelect}
-              onUseSample={handleUseSample}
-              isSampleMode={isSampleMode}
-            />
+              <LanguageSelector
+                selectedLanguage={targetLanguage}
+                onSelectLanguage={(lang) => setTargetLanguage(lang)}
+              />
 
-            <TemplateSelector
-              selectedTemplateId={selectedTemplateConfig.id}
-              onSelectTemplate={(tmpl) => {
-                setSelectedTemplateConfig(tmpl);
-                if (currentStep === 2) setCurrentStep(3);
-              }}
-            />
-
-            <LanguageSelector
-              selectedLanguage={targetLanguage}
-              onSelectLanguage={(lang) => setTargetLanguage(lang)}
-            />
-
-            {/* Validation & Convert Action Banner */}
-            <div className="sticky bottom-6 z-40 bg-slate-900/90 border border-slate-800 rounded-2xl p-4 backdrop-blur-xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-600/20 text-blue-400 border border-blue-500/30 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5" />
-                </div>
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs font-bold text-white">Validation Status:</span>
-                    <span
-                      className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${
-                        isValidateButtonEnabled
-                          ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
-                          : 'bg-slate-800 text-slate-500'
-                      }`}
-                    >
-                      {isValidateButtonEnabled ? 'Ready for Conversion' : 'Awaiting File'}
-                    </span>
+              {/* Validation & Convert Action Banner */}
+              <div className="sticky bottom-6 z-40 bg-white/80 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 backdrop-blur-3xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+                <div className="flex items-center space-x-3">
+                  <div className="w-10 h-10 rounded-2xl bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center justify-center">
+                    <ShieldCheck className="w-5 h-5" />
                   </div>
-                  <p className="text-[11px] text-slate-400">
-                    Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
-                    <strong className="text-white">{selectedTemplateConfig.company_name}</strong> ({selectedTemplateConfig.code})
-                  </p>
-                  {isConverting && conversionProgressStep && (
-                    <p className="text-[10px] font-semibold text-blue-400 animate-pulse mt-0.5">
-                      {conversionProgressStep}
+                  <div>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs font-extrabold text-slate-900 dark:text-white">Validation Status:</span>
+                      <span
+                        className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${
+                          isValidateButtonEnabled
+                            ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
+                            : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
+                        }`}
+                      >
+                        {isValidateButtonEnabled ? 'Ready for Conversion' : 'Awaiting File'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                      Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
+                      <strong className="text-slate-900 dark:text-white">{selectedTemplateConfig.company_name}</strong> ({selectedTemplateConfig.code})
                     </p>
-                  )}
+                    {isConverting && conversionProgressStep && (
+                      <p className="text-[10px] font-bold text-blue-600 dark:text-sky-400 animate-pulse mt-0.5">
+                        {conversionProgressStep}
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 w-full sm:w-auto">
+                  <button
+                    type="button"
+                    onClick={handleValidateAndConvert}
+                    disabled={!isValidateButtonEnabled || isConverting}
+                    className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-xs transition-all duration-300 shadow-xl flex items-center justify-center space-x-2 ${
+                      isValidateButtonEnabled && !isConverting
+                        ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white shadow-blue-500/30 active:scale-95'
+                        : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-300 dark:border-slate-700'
+                    }`}
+                  >
+                    {isConverting ? (
+                      <>
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <span>Analisis Gemini AI &amp; Process...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Analisis &amp; Konfirmasi Data AI</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
+                  </button>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-3 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={handleValidateAndConvert}
-                  disabled={!isValidateButtonEnabled || isConverting}
-                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-xl flex items-center justify-center space-x-2 ${
-                    isValidateButtonEnabled && !isConverting
-                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white shadow-blue-500/25 active:scale-95'
-                      : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
-                  }`}
-                >
-                  {isConverting ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                      <span>Analisis Gemini AI & Process...</span>
-                    </>
-                  ) : (
-                    <>
-                      <span>Analisis & Konfirmasi Data AI</span>
-                      <ArrowRight className="w-4 h-4" />
-                    </>
-                  )}
-                </button>
-              </div>
+              {conversionError && (
+                <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 text-rose-600 dark:text-rose-300 text-xs font-semibold">
+                  Conversion Error: {conversionError}
+                </div>
+              )}
             </div>
+          )}
 
-            {conversionError && (
-              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold">
-                Conversion Error: {conversionError}
-              </div>
-            )}
-          </div>
-        )}
+          {/* STEP 4: PREVIEW & DOWNLOAD */}
+          {currentStep === 4 && processedCv && outputPdfUrl && outputDocxUrl && (
+            <PreviewSection
+              template={selectedTemplateConfig}
+              language={targetLanguage}
+              pdfBase64Url={outputPdfUrl}
+              docxBase64Url={outputDocxUrl}
+              candidateName={processedCv.personal_information.full_name || 'Candidate'}
+              validationReport={validationReport || undefined}
+              onConvertAgain={() => setCurrentStep(1)}
+            />
+          )}
+        </div>
 
-        {/* STEP 4: PREVIEW & DOWNLOAD */}
-        {currentStep === 4 && processedCv && outputPdfUrl && outputDocxUrl && (
-          <PreviewSection
+        {/* REVIEW & CONFIRMATION MODAL */}
+        {extractedCv && processedCv && (
+          <ReviewModal
+            isOpen={isReviewModalOpen}
+            extractedCv={extractedCv}
+            processedCv={processedCv}
             template={selectedTemplateConfig}
             language={targetLanguage}
-            pdfBase64Url={outputPdfUrl}
-            docxBase64Url={outputDocxUrl}
-            candidateName={processedCv.personal_information.full_name || 'Candidate'}
-            validationReport={validationReport || undefined}
-            onConvertAgain={() => setCurrentStep(1)}
+            aiStatus={aiStatus}
+            onClose={() => setIsReviewModalOpen(false)}
+            onConfirmExport={handleConfirmExport}
           />
         )}
-      </div>
-
-      {/* REVIEW & CONFIRMATION MODAL */}
-      {extractedCv && processedCv && (
-        <ReviewModal
-          isOpen={isReviewModalOpen}
-          extractedCv={extractedCv}
-          processedCv={processedCv}
-          template={selectedTemplateConfig}
-          language={targetLanguage}
-          aiStatus={aiStatus}
-          onClose={() => setIsReviewModalOpen(false)}
-          onConfirmExport={handleConfirmExport}
-        />
-      )}
-    </main>
+      </main>
+    </ThemeProvider>
   );
 }

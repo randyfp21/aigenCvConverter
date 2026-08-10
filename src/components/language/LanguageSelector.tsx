@@ -1,6 +1,6 @@
 import React from 'react';
-import { Globe, CheckCircle2, ShieldAlert } from 'lucide-react';
 import { TargetLanguage } from '@/types/cv';
+import { Globe2, CheckCircle2 } from 'lucide-react';
 
 interface LanguageSelectorProps {
   selectedLanguage: TargetLanguage;
@@ -12,95 +12,70 @@ export const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   onSelectLanguage,
 }) => {
   return (
-    <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md">
-      <div className="flex items-center justify-between mb-4">
+    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 transition-all duration-500 bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-3xl shadow-xl dark:shadow-2xl shadow-slate-200/50 dark:shadow-black/60">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 border-b border-slate-200/60 dark:border-slate-800/60 pb-4">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>STEP 3 — Select Output Language</span>
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          </h2>
-          <p className="text-xs text-slate-400">
-            Factual statements will be translated while keeping company names, technologies, and certifications protected.
+          <div className="flex items-center space-x-2">
+            <span className="text-xs font-black tracking-widest text-blue-600 dark:text-sky-400 uppercase">STEP 3</span>
+            <h2 className="text-lg font-extrabold text-slate-900 dark:text-white flex items-center gap-2">
+              <span>Pilih Bahasa Output Dokumen CV</span>
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+            </h2>
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            Gemini AI akan menerjemahkan kualifikasi dan poin tanggung jawab sesuai bahasa target yang dipilih.
           </p>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Mode A: English */}
-        <div
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* English Option */}
+        <button
+          type="button"
           onClick={() => onSelectLanguage('en')}
-          className={`border rounded-xl p-4 cursor-pointer transition-all flex items-start justify-between ${
+          className={`p-5 rounded-2xl border text-left transition-all duration-500 flex items-center justify-between backdrop-blur-2xl ${
             selectedLanguage === 'en'
-              ? 'bg-blue-600/10 border-blue-500 ring-2 ring-blue-500/20 text-white'
-              : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-300'
+              ? 'bg-blue-500/5 dark:bg-slate-800/90 border-blue-500 ring-2 ring-blue-500/30 shadow-xl shadow-blue-500/10'
+              : 'bg-white/80 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-slate-800/40'
           }`}
         >
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400 mt-0.5">
-              <Globe className="w-5 h-5" />
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-600 dark:text-sky-400 flex items-center justify-center font-black text-lg">
+              EN
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h3 className="text-sm font-bold text-white">Convert to English</h3>
-                <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400">
-                  Default
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mt-1">
-                Standard international CV format. Responsibilities and summaries presented in English.
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">English (International Corporate)</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Standard format for multinational enterprises &amp; global clients
               </p>
             </div>
           </div>
+          {selectedLanguage === 'en' && <CheckCircle2 className="w-6 h-6 text-blue-500" />}
+        </button>
 
-          <div
-            className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-              selectedLanguage === 'en'
-                ? 'border-blue-500 bg-blue-600 text-white'
-                : 'border-slate-700 bg-slate-900'
-            }`}
-          >
-            {selectedLanguage === 'en' && <div className="w-2 h-2 rounded-full bg-white" />}
-          </div>
-        </div>
-
-        {/* Mode B: Bahasa Indonesia */}
-        <div
+        {/* Indonesian Option */}
+        <button
+          type="button"
           onClick={() => onSelectLanguage('id')}
-          className={`border rounded-xl p-4 cursor-pointer transition-all flex items-start justify-between ${
+          className={`p-5 rounded-2xl border text-left transition-all duration-500 flex items-center justify-between backdrop-blur-2xl ${
             selectedLanguage === 'id'
-              ? 'bg-blue-600/10 border-blue-500 ring-2 ring-blue-500/20 text-white'
-              : 'bg-slate-950/40 border-slate-800 hover:border-slate-700 text-slate-300'
+              ? 'bg-blue-500/5 dark:bg-slate-800/90 border-blue-500 ring-2 ring-blue-500/30 shadow-xl shadow-blue-500/10'
+              : 'bg-white/80 dark:bg-slate-950/40 border-slate-200 dark:border-slate-800/80 hover:border-blue-500/40 hover:bg-slate-50 dark:hover:bg-slate-800/40'
           }`}
         >
-          <div className="flex items-start space-x-3">
-            <div className="w-10 h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mt-0.5">
-              <Globe className="w-5 h-5" />
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-2xl bg-emerald-600/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 flex items-center justify-center font-black text-lg">
+              ID
             </div>
             <div>
-              <h3 className="text-sm font-bold text-white">Convert to Bahasa Indonesia</h3>
-              <p className="text-xs text-slate-400 mt-1">
-                Standard Indonesian national CV format with localized section headers and descriptions.
+              <h3 className="text-sm font-extrabold text-slate-900 dark:text-white">Bahasa Indonesia (Resmi Nasional)</h3>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Format baku Indonesia untuk instansi, BUMN, &amp; korporasi nasional
               </p>
             </div>
           </div>
-
-          <div
-            className={`w-5 h-5 rounded-full border flex items-center justify-center ${
-              selectedLanguage === 'id'
-                ? 'border-blue-500 bg-blue-600 text-white'
-                : 'border-slate-700 bg-slate-900'
-            }`}
-          >
-            {selectedLanguage === 'id' && <div className="w-2 h-2 rounded-full bg-white" />}
-          </div>
-        </div>
-      </div>
-
-      <div className="mt-4 p-3 rounded-lg bg-slate-950/60 border border-slate-800 text-[11px] text-slate-400 flex items-center gap-2">
-        <ShieldAlert className="w-4 h-4 text-blue-400 flex-shrink-0" />
-        <span>
-          <strong>Entity Protection Active:</strong> Company names (<em>PT Bank ABC</em>), technology stack (<em>PostgreSQL, Kafka, AWS</em>), job titles, and certifications are preserved verbatim.
-        </span>
+          {selectedLanguage === 'id' && <CheckCircle2 className="w-6 h-6 text-emerald-500" />}
+        </button>
       </div>
     </div>
   );

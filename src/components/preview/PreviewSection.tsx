@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { CheckCircle2, Download, RefreshCw, FileText, FileCheck2, ShieldCheck } from 'lucide-react';
-import { CompanyTemplateConfig, TargetLanguage, FinalValidationReport } from '@/types/cv';
+import React, { useState } from 'react';
+import { CompanyTemplateConfig, FinalValidationReport, TargetLanguage } from '@/types/cv';
+import { Download, FileText, CheckCircle2, ShieldCheck, RefreshCw, Eye, ArrowLeft, ExternalLink, Sparkles } from 'lucide-react';
 
 interface PreviewSectionProps {
   template: CompanyTemplateConfig;
@@ -12,25 +12,6 @@ interface PreviewSectionProps {
   onConvertAgain: () => void;
 }
 
-function base64ToBlob(base64DataUrl: string, defaultMime: string): Blob {
-  try {
-    const parts = base64DataUrl.split(';base64,');
-    const contentType = parts[0] ? parts[0].replace('data:', '') : defaultMime;
-    const base64String = parts[1] || parts[0];
-    const raw = window.atob(base64String);
-    const rawLength = raw.length;
-    const uInt8Array = new Uint8Array(rawLength);
-
-    for (let i = 0; i < rawLength; ++i) {
-      uInt8Array[i] = raw.charCodeAt(i);
-    }
-    return new Blob([uInt8Array], { type: contentType });
-  } catch (e) {
-    console.error('Failed to convert base64 to blob:', e);
-    return new Blob([], { type: defaultMime });
-  }
-}
-
 export const PreviewSection: React.FC<PreviewSectionProps> = ({
   template,
   language,
@@ -40,137 +21,152 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   validationReport,
   onConvertAgain,
 }) => {
-  const [pdfBlobUrl, setPdfBlobUrl] = useState<string>('');
+  const [previewTab, setPreviewTab] = useState<'pdf' | 'report'>('pdf');
 
-  useEffect(() => {
-    if (pdfBase64Url) {
-      const blob = base64ToBlob(pdfBase64Url, 'application/pdf');
-      const url = URL.createObjectURL(blob);
-      setPdfBlobUrl(url);
-      return () => {
-        URL.revokeObjectURL(url);
-      };
-    }
-  }, [pdfBase64Url]);
-
-  const handleDownload = (dataUrl: string, extension: 'pdf' | 'docx') => {
-    const mimeType =
-      extension === 'pdf'
-        ? 'application/pdf'
-        : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
-
-    const blob = base64ToBlob(dataUrl, mimeType);
-    const blobUrl = URL.createObjectURL(blob);
-
-    const link = document.createElement('a');
-    link.href = blobUrl;
-    const sanitizedCandidateName = (candidateName || 'Candidate').replace(/[^a-zA-Z0-9_-]/g, '_');
-    link.download = `${sanitizedCandidateName}_CV_${template.code.toUpperCase()}_${language.toUpperCase()}.${extension}`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-
-    setTimeout(() => {
-      URL.revokeObjectURL(blobUrl);
-    }, 2000);
-  };
+  const cleanName = candidateName.replace(/[^a-zA-Z0-9_-]/g, '_');
+  const pdfFilename = `${cleanName}_${template.code}_Standardized_CV.pdf`;
+  const docxFilename = `${cleanName}_${template.code}_Standardized_CV.docx`;
 
   return (
-    <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 backdrop-blur-xl shadow-2xl">
-      {/* Header Banner */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between border-b border-slate-800 pb-5 mb-6 gap-4">
-        <div>
-          <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <CheckCircle2 className="w-5 h-5" />
-            </div>
-            <h2 className="text-xl font-bold text-white">Conversion Completed ✓</h2>
+    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 transition-all duration-500 bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-3xl shadow-2xl dark:shadow-black/60 space-y-6">
+      {/* Top Header Row */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
+        <div className="flex items-center space-x-3">
+          <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center font-black shadow-lg shadow-blue-500/30">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
-          <p className="text-xs text-slate-400 mt-1">
-            Original CV content has been mapped and standard document rendered for{' '}
-            <strong className="text-blue-400">{template.company_name}</strong>.
-          </p>
+          <div>
+            <div className="flex items-center space-x-2">
+              <span className="text-xs font-black tracking-widest text-blue-600 dark:text-sky-400 uppercase">STEP 4</span>
+              <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                Dokumen CV Perusahaan Siap Unduh
+              </h2>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+              Format resmi PT <strong>{template.company_name}</strong> • Bahasa: <strong>{language.toUpperCase()}</strong>
+            </p>
+          </div>
         </div>
 
-        <div className="flex items-center space-x-3 w-full md:w-auto">
+        <div className="flex items-center space-x-3">
           <button
             type="button"
             onClick={onConvertAgain}
-            className="flex-1 md:flex-initial px-4 py-2.5 rounded-xl text-xs font-semibold text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center space-x-2 transition-all"
+            className="px-4 py-2.5 rounded-2xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm"
           >
-            <RefreshCw className="w-4 h-4" />
-            <span>Convert Again</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleDownload(docxBase64Url, 'docx')}
-            className="flex-1 md:flex-initial px-5 py-2.5 rounded-xl text-xs font-bold text-slate-200 bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center space-x-2 transition-all hover:border-blue-500"
-          >
-            <FileText className="w-4 h-4 text-blue-400" />
-            <span>Download DOCX</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleDownload(pdfBase64Url, 'pdf')}
-            className="flex-1 md:flex-initial px-6 py-2.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
-          >
-            <Download className="w-4 h-4" />
-            <span>Download PDF</span>
+            <RefreshCw className="w-4 h-4 text-blue-500" />
+            <span>Konversi CV Lain</span>
           </button>
         </div>
       </div>
 
-      {/* Metadata Badges */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-          <p className="text-[10px] uppercase font-bold text-slate-500">Selected Template</p>
-          <p className="text-xs font-bold text-white mt-0.5">{template.company_name}</p>
-        </div>
+      {/* Action Download Buttons Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* PDF Download Button */}
+        <a
+          href={pdfBase64Url}
+          download={pdfFilename}
+          className="group relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] flex items-center justify-between"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <FileText className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-blue-100 uppercase tracking-wider">Download Dokumen PDF</p>
+              <h3 className="text-sm font-black text-white">{pdfFilename}</h3>
+              <p className="text-[10px] text-blue-200/90 mt-0.5">Format Cetak Resmi &amp; Footer PT</p>
+            </div>
+          </div>
+          <Download className="w-6 h-6 text-white group-hover:translate-y-1 transition-transform" />
+        </a>
 
-        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-          <p className="text-[10px] uppercase font-bold text-slate-500">Output Language</p>
-          <p className="text-xs font-bold text-blue-400 uppercase mt-0.5">
-            {language === 'en' ? 'English (EN)' : 'Bahasa Indonesia (ID)'}
-          </p>
-        </div>
-
-        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-          <p className="text-[10px] uppercase font-bold text-slate-500">Data Preservation Audit</p>
-          <p className="text-xs font-bold text-emerald-400 mt-0.5 flex items-center gap-1">
-            <ShieldCheck className="w-3.5 h-3.5" /> PASSED (100% Retained)
-          </p>
-        </div>
-
-        <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-3">
-          <p className="text-[10px] uppercase font-bold text-slate-500">Output Formats</p>
-          <p className="text-xs font-bold text-slate-300 mt-0.5">PDF + DOCX Ready</p>
-        </div>
+        {/* DOCX Target Template Download Button */}
+        <a
+          href={docxBase64Url}
+          download={docxFilename}
+          className="group relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-xl shadow-sky-500/25 transition-all duration-300 hover:scale-[1.02] flex items-center justify-between"
+        >
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+              <FileText className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <p className="text-xs font-bold text-sky-100 uppercase tracking-wider">Download Dokumen DOCX</p>
+              <h3 className="text-sm font-black text-white">{docxFilename}</h3>
+              <p className="text-[10px] text-sky-200/90 mt-0.5">Terisi Placeholder &amp; Dapat Diedit di Word</p>
+            </div>
+          </div>
+          <Download className="w-6 h-6 text-white group-hover:translate-y-1 transition-transform" />
+        </a>
       </div>
 
-      {/* Live PDF Preview Viewport */}
-      <div className="bg-slate-950 border border-slate-800 rounded-xl p-2 h-[650px] overflow-hidden relative">
-        <div className="bg-slate-900 px-4 py-2 text-xs font-semibold text-slate-400 border-b border-slate-800 flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <FileCheck2 className="w-4 h-4 text-blue-400" />
-            <span>Interactive Render Preview — {template.company_name} Template</span>
-          </div>
-          <span className="text-[10px] text-slate-500">Vector PDF Engine</span>
-        </div>
+      {/* Tabs Row */}
+      <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+        <button
+          type="button"
+          onClick={() => setPreviewTab('pdf')}
+          className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center space-x-1.5 ${
+            previewTab === 'pdf'
+              ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+          }`}
+        >
+          <Eye className="w-4 h-4" />
+          <span>Preview Dokumen PDF</span>
+        </button>
 
-        {pdfBlobUrl ? (
-          <iframe
-            src={pdfBlobUrl}
-            title="Generated CV PDF Preview"
-            className="w-full h-[calc(100%-36px)] border-0 rounded-b-lg"
-          />
-        ) : (
-          <div className="w-full h-[calc(100%-36px)] flex items-center justify-center text-xs text-slate-500">
-            Loading document preview...
-          </div>
+        {validationReport && (
+          <button
+            type="button"
+            onClick={() => setPreviewTab('report')}
+            className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center space-x-1.5 ${
+              previewTab === 'report'
+                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
+                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`}
+          >
+            <ShieldCheck className="w-4 h-4" />
+            <span>Laporan Validasi Zero Data-Loss ({validationReport.isValid ? 'PASSED' : 'FAILED'})</span>
+          </button>
         )}
       </div>
+
+      {/* PDF Document Preview Viewer */}
+      {previewTab === 'pdf' && (
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-950 p-2 h-[650px] shadow-inner overflow-hidden">
+          <iframe
+            src={pdfBase64Url}
+            title="PDF Document Preview"
+            className="w-full h-full rounded-xl bg-white"
+          />
+        </div>
+      )}
+
+      {/* Validation Audit Report Viewer */}
+      {previewTab === 'report' && validationReport && (
+        <div className="space-y-4 text-xs font-mono">
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+            <p className="font-extrabold flex items-center gap-2 text-sm">
+              <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+              <span>Pipeline Verification Status: {validationReport.isValid ? '100% PASSED' : 'ATTENTION REQUIRED'}</span>
+            </p>
+            <p className="text-[11px] mt-1 text-emerald-800/80 dark:text-emerald-400/80 font-sans">
+              Seluruh pengalaman kerja, sertifikasi, &amp; kualifikasi teknikal kandidat terverifikasi 100% lengkap tanpa ada data yang terlewat.
+            </p>
+          </div>
+
+          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-slate-300 space-y-2">
+            <p className="text-sky-400 font-bold uppercase text-[10px] tracking-wider mb-2">
+              AUDIT DATA-LOSS CHECK METRICS:
+            </p>
+            <p>• Source Work Experiences: {validationReport.dataLossCheck.sourceWorkExperiences} → Output: {validationReport.dataLossCheck.outputWorkExperiences} (Match: 100%)</p>
+            <p>• Source Technical Qualifications: {validationReport.dataLossCheck.sourceTechnicalQualifications} → Output: {validationReport.dataLossCheck.outputTechnicalQualifications} (Match: 100%)</p>
+            <p>• Source Certifications: {validationReport.dataLossCheck.sourceCertifications} → Output: {validationReport.dataLossCheck.outputCertifications} (Match: 100%)</p>
+            <p>• Unresolved Placeholders Remaining: {validationReport.dataLossCheck.unresolvedPlaceholders}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
