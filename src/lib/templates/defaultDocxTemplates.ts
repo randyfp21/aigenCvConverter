@@ -14,10 +14,12 @@ import {
 } from 'docx';
 
 /**
- * Creates an official target DOCX template buffer containing exact placeholders:
- * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
- * {professional_experience}, {technical_qualification}, {education}, {certifications},
- * {company_name}, {company_address}, {company_website}, {company_phone}
+ * Creates a clean, beautifully formatted corporate DOCX template with:
+ * - Top-Right Company Logo & Code Header
+ * - Styled Separator Lines with customized separator color
+ * - Candidate Name, Role & Years of Experience
+ * - Structured Sections ({about_me}, {professional_experience}, {technical_qualification}, {education}, {certifications})
+ * - Bottom Page Footer (Company Name, Address, Website, Phone)
  */
 export async function createOfficialCompanyDocxTemplate(
   companyName: string,
@@ -27,7 +29,8 @@ export async function createOfficialCompanyDocxTemplate(
   companyWebsite = 'www.company.com',
   companyPhone = '+62 21 500 8000'
 ): Promise<Buffer> {
-  const cleanColor = (primaryColorHex || '#0F172A').replace('#', '');
+  const cleanPrimary = (primaryColorHex || '#0F172A').replace('#', '');
+  const cleanCode = (companyCode || 'PT').toUpperCase();
 
   const doc = new Document({
     sections: [
@@ -45,15 +48,57 @@ export async function createOfficialCompanyDocxTemplate(
         headers: {
           default: new Header({
             children: [
-              new Paragraph({
-                alignment: AlignmentType.RIGHT,
-                children: [
-                  new TextRun({
-                    text: `{company_name}`,
-                    bold: true,
-                    size: 16,
-                    color: cleanColor,
-                    font: 'Calibri',
+              new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                rows: [
+                  new TableRow({
+                    children: [
+                      new TableCell({
+                        width: { size: 60, type: WidthType.PERCENTAGE },
+                        borders: {
+                          top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                        },
+                        children: [
+                          new Paragraph({
+                            children: [
+                              new TextRun({
+                                text: `{company_name}`,
+                                bold: true,
+                                size: 18,
+                                color: cleanPrimary,
+                                font: 'Calibri',
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+                      new TableCell({
+                        width: { size: 40, type: WidthType.PERCENTAGE },
+                        borders: {
+                          top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                        },
+                        children: [
+                          new Paragraph({
+                            alignment: AlignmentType.RIGHT,
+                            children: [
+                              new TextRun({
+                                text: `[ ${cleanCode} ]`,
+                                bold: true,
+                                size: 16,
+                                color: '0284C7',
+                                font: 'Calibri',
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+                    ],
                   }),
                 ],
               }),
@@ -67,7 +112,7 @@ export async function createOfficialCompanyDocxTemplate(
                 alignment: AlignmentType.CENTER,
                 children: [
                   new TextRun({
-                    text: `{company_address}  •  {company_website}  •  Tel: {company_phone}`,
+                    text: `{company_name}  •  {company_address}  •  {company_website}  •  Tel: {company_phone}`,
                     size: 15,
                     color: '64748B',
                     font: 'Calibri',
@@ -78,19 +123,19 @@ export async function createOfficialCompanyDocxTemplate(
           }),
         },
         children: [
-          // Company Banner Table Header with Logo Text
+          // Top Header Banner with Logo & Company Info
           new Table({
             width: { size: 100, type: WidthType.PERCENTAGE },
             rows: [
               new TableRow({
                 children: [
                   new TableCell({
-                    width: { size: 100, type: WidthType.PERCENTAGE },
-                    shading: { fill: cleanColor },
+                    width: { size: 70, type: WidthType.PERCENTAGE },
+                    shading: { fill: cleanPrimary },
                     margins: { top: 220, bottom: 220, left: 300, right: 300 },
                     borders: {
                       top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                      bottom: { style: BorderStyle.SINGLE, size: 12, color: cleanColor },
+                      bottom: { style: BorderStyle.SINGLE, size: 12, color: '0284C7' },
                       left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                       right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                     },
@@ -100,7 +145,7 @@ export async function createOfficialCompanyDocxTemplate(
                           new TextRun({
                             text: '{company_name}',
                             bold: true,
-                            size: 28,
+                            size: 26,
                             color: 'FFFFFF',
                             font: 'Calibri',
                           }),
@@ -112,6 +157,31 @@ export async function createOfficialCompanyDocxTemplate(
                             text: '{company_address}  |  {company_website}  |  {company_phone}',
                             size: 16,
                             color: 'E2E8F0',
+                            font: 'Calibri',
+                          }),
+                        ],
+                      }),
+                    ],
+                  }),
+                  new TableCell({
+                    width: { size: 30, type: WidthType.PERCENTAGE },
+                    shading: { fill: cleanPrimary },
+                    margins: { top: 220, bottom: 220, left: 200, right: 200 },
+                    borders: {
+                      top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                      bottom: { style: BorderStyle.SINGLE, size: 12, color: '0284C7' },
+                      left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                      right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                    },
+                    children: [
+                      new Paragraph({
+                        alignment: AlignmentType.RIGHT,
+                        children: [
+                          new TextRun({
+                            text: `[ LOGO ${cleanCode} ]`,
+                            bold: true,
+                            size: 20,
+                            color: '38BDF8',
                             font: 'Calibri',
                           }),
                         ],
@@ -132,7 +202,7 @@ export async function createOfficialCompanyDocxTemplate(
                 text: '{Nama_lengkap}',
                 bold: true,
                 size: 36,
-                color: cleanColor,
+                color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
@@ -170,11 +240,11 @@ export async function createOfficialCompanyDocxTemplate(
                 text: 'SUMMARY ABOUT ME',
                 bold: true,
                 size: 22,
-                color: cleanColor,
+                color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: cleanColor } },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' } },
             spacing: { before: 200, after: 120 },
           }),
           new Paragraph({
@@ -196,11 +266,11 @@ export async function createOfficialCompanyDocxTemplate(
                 text: 'PROFESSIONAL EXPERIENCE',
                 bold: true,
                 size: 22,
-                color: cleanColor,
+                color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: cleanColor } },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' } },
             spacing: { before: 200, after: 120 },
           }),
           new Paragraph({
@@ -222,11 +292,11 @@ export async function createOfficialCompanyDocxTemplate(
                 text: 'TECHNICAL QUALIFICATIONS',
                 bold: true,
                 size: 22,
-                color: cleanColor,
+                color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: cleanColor } },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' } },
             spacing: { before: 200, after: 120 },
           }),
           new Paragraph({
@@ -263,7 +333,7 @@ export async function createOfficialCompanyDocxTemplate(
                             text: 'LIST EDUCATION',
                             bold: true,
                             size: 20,
-                            color: cleanColor,
+                            color: cleanPrimary,
                             font: 'Calibri',
                           }),
                         ],
@@ -297,7 +367,7 @@ export async function createOfficialCompanyDocxTemplate(
                             text: 'LIST CERTIFICATION',
                             bold: true,
                             size: 20,
-                            color: cleanColor,
+                            color: cleanPrimary,
                             font: 'Calibri',
                           }),
                         ],

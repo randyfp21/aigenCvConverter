@@ -7,47 +7,67 @@ export async function generatePdfBuffer(
   template: CompanyTemplateConfig,
   lang: TargetLanguage
 ): Promise<Buffer> {
-  const { theme, layout, company_name, company_address, company_website, company_phone } = template;
+  const { theme, layout, company_name, code, company_address, company_website, company_phone } = template;
   const titles = layout.section_titles;
+
+  const sepColor = theme.separator_color || theme.secondary_color || '#0284C7';
+  const primaryColor = theme.primary_color || '#0F172A';
 
   const styles = StyleSheet.create({
     page: {
-      padding: 36,
+      paddingTop: 36,
+      paddingBottom: 48,
+      paddingHorizontal: 40,
       fontFamily: 'Helvetica',
       fontSize: 10,
       color: theme.text_color || '#1F2937',
       backgroundColor: '#FFFFFF',
     },
-    headerBanner: {
-      backgroundColor: theme.primary_color,
-      padding: 16,
-      borderRadius: 4,
-      marginBottom: 16,
-      color: '#FFFFFF',
-    },
-    headerStandard: {
-      borderBottomWidth: 2,
-      borderBottomColor: theme.primary_color,
+    headerRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
       paddingBottom: 12,
+      borderBottomWidth: 2,
+      borderBottomColor: sepColor,
       marginBottom: 16,
     },
-    companyName: {
+    headerLeft: {
+      flex: 1,
+    },
+    headerRight: {
+      alignItems: 'flex-end',
+    },
+    companyBadge: {
+      backgroundColor: primaryColor,
+      paddingHorizontal: 10,
+      paddingVertical: 6,
+      borderRadius: 6,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    companyBadgeText: {
       fontSize: 11,
-      color: theme.secondary_color,
       fontWeight: 'bold',
+      color: '#FFFFFF',
       textTransform: 'uppercase',
-      letterSpacing: 0.5,
-      marginBottom: 4,
+    },
+    companyCodeText: {
+      fontSize: 8,
+      color: sepColor,
+      marginTop: 2,
+      fontWeight: 'bold',
     },
     name: {
       fontSize: 22,
       fontWeight: 'bold',
-      color: layout.header_style === 'banner' ? '#FFFFFF' : theme.primary_color,
+      color: primaryColor,
     },
-    companyContactTag: {
-      fontSize: 8.5,
-      marginTop: 4,
-      color: layout.header_style === 'banner' ? '#E0F2FE' : '#64748B',
+    roleText: {
+      fontSize: 11,
+      fontWeight: 'bold',
+      color: sepColor,
+      marginTop: 2,
     },
     sectionContainer: {
       marginBottom: 14,
@@ -55,10 +75,10 @@ export async function generatePdfBuffer(
     sectionTitle: {
       fontSize: 11,
       fontWeight: 'bold',
-      color: theme.primary_color,
-      borderBottomWidth: 1,
-      borderBottomColor: theme.secondary_color,
-      paddingBottom: 4,
+      color: primaryColor,
+      borderBottomWidth: 1.5,
+      borderBottomColor: sepColor,
+      paddingBottom: 3,
       marginBottom: 8,
       textTransform: 'uppercase',
     },
@@ -76,14 +96,14 @@ export async function generatePdfBuffer(
       marginBottom: 2,
     },
     jobTitle: {
-      fontSize: 11,
+      fontSize: 10.5,
       fontWeight: 'bold',
       color: '#111827',
     },
     companyText: {
-      fontSize: 10,
+      fontSize: 9.5,
       fontWeight: 'bold',
-      color: theme.secondary_color,
+      color: sepColor,
     },
     jobDate: {
       fontSize: 9,
@@ -92,14 +112,14 @@ export async function generatePdfBuffer(
     bulletItem: {
       fontSize: 9,
       lineHeight: 1.35,
-      marginBottom: 3,
+      marginBottom: 2.5,
       paddingLeft: 8,
       color: '#374151',
     },
     skillBadge: {
       fontSize: 8.5,
-      backgroundColor: '#F3F4F6',
-      color: theme.primary_color,
+      backgroundColor: '#F1F5F9',
+      color: primaryColor,
       paddingHorizontal: 6,
       paddingVertical: 3,
       borderRadius: 3,
@@ -111,25 +131,25 @@ export async function generatePdfBuffer(
       flexWrap: 'wrap',
     },
     certItem: {
-      fontSize: 9.5,
-      fontWeight: 'bold',
+      fontSize: 9,
       color: '#1F2937',
       marginBottom: 2,
     },
     eduItem: {
-      fontSize: 9.5,
-      marginBottom: 4,
+      fontSize: 9,
+      marginBottom: 3,
+      color: '#1F2937',
     },
     footer: {
       position: 'absolute',
-      bottom: 20,
-      left: 36,
-      right: 36,
+      bottom: 18,
+      left: 40,
+      right: 40,
       fontSize: 8,
       textAlign: 'center',
-      color: '#9CA3AF',
-      borderTopWidth: 0.5,
-      borderTopColor: '#E5E7EB',
+      color: '#64748B',
+      borderTopWidth: 1,
+      borderTopColor: sepColor,
       paddingTop: 6,
     },
   });
@@ -137,14 +157,24 @@ export async function generatePdfBuffer(
   const PdfDocument = (
     <Document title={`Candidate Profile - ${cv.personal_information.full_name}`}>
       <Page size="A4" style={styles.page}>
-        <View style={layout.header_style === 'banner' ? styles.headerBanner : styles.headerStandard}>
-          <Text style={styles.companyName}>{company_name}</Text>
-          <Text style={styles.name}>{cv.personal_information.full_name || 'Candidate Profile'}</Text>
-          <Text style={styles.companyContactTag}>
-            {company_address || 'Jakarta, Indonesia'} • {company_website || 'www.company.com'} • Tel: {company_phone || '+62 21 500 8000'}
-          </Text>
+        {/* Top Header with Candidate Info Left & Top-Right Company Logo Badge */}
+        <View style={styles.headerRow}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.name}>{cv.personal_information.full_name || 'Candidate Profile'}</Text>
+            <Text style={styles.roleText}>
+              {cv.role} {cv.years_of_experience ? `• ${cv.years_of_experience}` : ''}
+            </Text>
+          </View>
+
+          <View style={styles.headerRight}>
+            <View style={styles.companyBadge}>
+              <Text style={styles.companyBadgeText}>{company_name}</Text>
+            </View>
+            <Text style={styles.companyCodeText}>[{code || 'PT'}] OFFICIAL PROFILE</Text>
+          </View>
         </View>
 
+        {/* Dynamic Sections Based on Template Layout */}
         {layout.section_order.map((sectionKey) => {
           if (sectionKey === 'summary' && (cv.about_me || cv.summary)) {
             return (
@@ -200,7 +230,7 @@ export async function generatePdfBuffer(
                 <Text style={styles.sectionTitle}>{titles.certifications?.[lang] || 'List Certification'}</Text>
                 {cv.certifications.map((cert, cIdx) => (
                   <Text key={cert.id || cIdx} style={styles.certItem}>
-                    - {cert.name} {cert.issuer ? `(${cert.issuer})` : ''} {cert.date ? `- ${cert.date}` : ''}
+                    • {cert.name} {cert.issuer ? `(${cert.issuer})` : ''} {cert.date ? `- ${cert.date}` : ''}
                   </Text>
                 ))}
               </View>
@@ -213,7 +243,7 @@ export async function generatePdfBuffer(
                 <Text style={styles.sectionTitle}>{titles.education?.[lang] || 'List Education'}</Text>
                 {cv.education.map((edu, eIdx) => (
                   <Text key={edu.id || eIdx} style={styles.eduItem}>
-                    - {edu.institution} {edu.degree ? `- ${edu.degree}` : ''} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}
+                    • {edu.institution} {edu.degree ? `- ${edu.degree}` : ''} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}
                   </Text>
                 ))}
               </View>
@@ -223,8 +253,9 @@ export async function generatePdfBuffer(
           return null;
         })}
 
+        {/* Bottom Page Footer */}
         <Text style={styles.footer}>
-          {company_name} • {company_address || 'Jakarta, Indonesia'} • {company_website || 'www.company.com'} • Tel: {company_phone || '+62 21 500 8000'}
+          {company_name}  •  {company_address || 'Jakarta, Indonesia'}  •  {company_website || 'www.company.com'}  •  Tel: {company_phone || '+62 21 500 8000'}
         </Text>
       </Page>
     </Document>
