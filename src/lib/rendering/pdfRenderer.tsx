@@ -34,6 +34,7 @@ export async function generatePdfBuffer(
   };
 
   const logoSrc = getLogoSrc();
+  const portfolioLink = cv.personal_information.portfolio_url || cv.personal_information.website || cv.personal_information.linkedin || '';
 
   const styles = StyleSheet.create({
     page: {
@@ -77,6 +78,11 @@ export async function generatePdfBuffer(
       fontWeight: 'bold',
       color: sepColor,
       marginTop: 2,
+    },
+    portfolioText: {
+      fontSize: 8.5,
+      color: '#475569',
+      marginTop: 3,
     },
     sectionContainer: {
       marginBottom: 14,
@@ -124,6 +130,13 @@ export async function generatePdfBuffer(
       marginBottom: 2.5,
       paddingLeft: 8,
       color: '#374151',
+    },
+    projectBullet: {
+      fontSize: 8.5,
+      lineHeight: 1.3,
+      marginBottom: 2,
+      paddingLeft: 14,
+      color: '#0F766E',
     },
     skillBadge: {
       fontSize: 8.5,
@@ -173,6 +186,9 @@ export async function generatePdfBuffer(
             <Text style={styles.roleText}>
               {cv.role} {cv.years_of_experience ? `• ${cv.years_of_experience}` : ''}
             </Text>
+            {portfolioLink ? (
+              <Text style={styles.portfolioText}>Portfolio / Link: {portfolioLink}</Text>
+            ) : null}
           </View>
 
           <View style={styles.headerRight}>
@@ -226,6 +242,13 @@ export async function generatePdfBuffer(
                         - {resp}
                       </Text>
                     ))}
+                    {job.projects && job.projects.length > 0
+                      ? job.projects.map((proj, pIdx) => (
+                          <Text key={pIdx} style={styles.projectBullet}>
+                            ▸ Project: {proj.name} - {proj.description} {proj.technologies.length > 0 ? `(Tech: ${proj.technologies.join(', ')})` : ''} {proj.link ? `[${proj.link}]` : ''}
+                          </Text>
+                        ))
+                      : null}
                   </View>
                 ))}
               </View>

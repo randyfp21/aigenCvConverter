@@ -4,6 +4,7 @@ export interface PersonalInformation {
   phone: string;
   location: string;
   linkedin?: string;
+  portfolio_url?: string;
   website?: string;
 }
 
@@ -12,6 +13,7 @@ export interface Project {
   description: string;
   technologies: string[];
   role?: string;
+  link?: string;
 }
 
 export interface WorkExperience {
@@ -74,6 +76,7 @@ export interface CanonicalCV {
   about_me: string;
   summary: string;
   work_experience: WorkExperience[];
+  key_projects?: Project[];
   technical_qualifications: string[];
   skills: SkillCategories;
   certifications: Certification[];

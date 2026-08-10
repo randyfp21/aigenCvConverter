@@ -80,6 +80,7 @@ export async function uploadBufferToGemini(
 
 /**
  * Extracts structured candidate data using Gemini AI (supports direct File API & text fallback)
+ * Includes full Project Experience extraction and Portfolio Links preservation.
  */
 export async function extractCvWithGeminiAI(
   rawCvText: string,
@@ -98,13 +99,18 @@ export async function extractCvWithGeminiAI(
 You are an Expert AI HR Specialist and Senior CV Analyst.
 Analyze the provided candidate CV (file or text) and produce a fully qualified, structured JSON payload.
 
+SPECIAL RULES FOR PORTFOLIO & PROJECTS:
+- Extract all Portfolio Links, GitHub, Behance, Dribbble, LinkedIn, or Personal Portfolio URLs. DO NOT OMIT THEM.
+- Thoroughly extract ALL Project Experiences (Nama Proyek, Deskripsi, Teknologi/Tech Stack, Role, Link Proyek) mentioned under work history or dedicated project sections.
+
 REQUIRED JSON SCHEMA & RULES:
 1. personal_information: Object containing:
    - full_name: string (Candidate Full Name)
    - email: string
    - phone: string
    - location: string
-   - linkedin: string
+   - linkedin: string (Candidate LinkedIn URL if present)
+   - portfolio_url: string (Candidate Portfolio, GitHub, Behance, or Personal Website link)
 2. role: string (Candidate's primary role e.g., "Senior Fullstack JavaScript Developer", "IT Project Manager")
 3. years_of_experience: string (Calculated total years & seniority string e.g., "Senior (7 Years)", "Middle (4 Years)", or "Junior (2 Years)")
 4. seniority_level: "Junior" | "Middle" | "Senior" (Junior for 1-3 years, Middle for 3-5 years, Senior for 5+ years)
@@ -120,13 +126,25 @@ REQUIRED JSON SCHEMA & RULES:
    - end_date: string (e.g., "Present" or "Dec 2023")
    - is_current: boolean
    - responsibilities: Array of strings (Full bullet point responsibilities and achievements extracted from source CV)
-9. technical_qualifications: Array of strings (All technical skills, programming languages, tools, frameworks, databases e.g., ["Golang", "TypeScript", "React", "PostgreSQL", "Kafka", "Docker"])
-10. education: Array of objects containing:
+   - projects: Array of objects containing:
+     - name: string (Project Name)
+     - description: string (Project Description & Impact)
+     - technologies: Array of strings (Tech stack used in project e.g. ["React", "Node.js", "PostgreSQL"])
+     - role: string (Role in project)
+     - link: string (Project live demo or repo link if present)
+9. key_projects: Array of objects containing (standalone or highlight projects):
+   - name: string
+   - description: string
+   - technologies: Array of strings
+   - role: string
+   - link: string
+10. technical_qualifications: Array of strings (All technical skills, programming languages, tools, frameworks, databases e.g., ["Golang", "TypeScript", "React", "PostgreSQL", "Kafka", "Docker"])
+11. education: Array of objects containing:
    - id: string
    - institution: string (University / Institute Name)
    - degree: string (Degree e.g., "Bachelor of Computer Science", "S1 Teknik Informatika")
    - field_of_study: string
-11. certifications: Array of objects containing:
+12. certifications: Array of objects containing:
    - id: string
    - name: string (Certification Name e.g., "AWS Certified Solutions Architect")
    - issuer: string (Issuer e.g., "Amazon Web Services")
@@ -190,11 +208,12 @@ ${rawCvText}
       const qualifiedCv: CanonicalCV = {
         personal_information: {
           full_name: parsedData.personal_information?.full_name || 'Candidate',
-          email: parsedData.personal_information?.email || '',
-          phone: parsedData.personal_information?.phone || '',
+          email: '',
+          phone: '',
           location: parsedData.personal_information?.location || '',
           linkedin: parsedData.personal_information?.linkedin || '',
-          website: '',
+          portfolio_url: parsedData.personal_information?.portfolio_url || parsedData.personal_information?.website || '',
+          website: parsedData.personal_information?.website || parsedData.personal_information?.portfolio_url || '',
         },
         role: parsedData.role || 'Professional Candidate',
         years_of_experience: parsedData.years_of_experience || 'Junior (1 Year)',
@@ -212,7 +231,24 @@ ${rawCvText}
               end_date: job.end_date || '',
               is_current: Boolean(job.is_current),
               responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities : [],
-              projects: [],
+              projects: Array.isArray(job.projects)
+                ? job.projects.map((p: any) => ({
+                    name: p.name || 'Project',
+                    description: p.description || '',
+                    technologies: Array.isArray(p.technologies) ? p.technologies : [],
+                    role: p.role || '',
+                    link: p.link || '',
+                  }))
+                : [],
+            }))
+          : [],
+        key_projects: Array.isArray(parsedData.key_projects)
+          ? parsedData.key_projects.map((p: any) => ({
+              name: p.name || 'Project',
+              description: p.description || '',
+              technologies: Array.isArray(p.technologies) ? p.technologies : [],
+              role: p.role || '',
+              link: p.link || '',
             }))
           : [],
         technical_qualifications: Array.isArray(parsedData.technical_qualifications)
@@ -258,7 +294,7 @@ ${rawCvText}
         },
       };
 
-      console.log(`Successfully analyzed CV using Gemini AI (${modelName}) with File API support`);
+      console.log(`Successfully analyzed CV using Gemini AI (${modelName}) with Projects & Portfolio Links support`);
       return qualifiedCv;
     } catch (modelError) {
       console.warn(`Error calling Gemini model ${modelName}:`, modelError);

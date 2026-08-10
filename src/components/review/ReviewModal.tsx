@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CanonicalCV, CompanyTemplateConfig, TargetLanguage } from '@/types/cv';
-import { User, Briefcase, Award, GraduationCap, Code2, ArrowRight, EyeOff, Clock, Sparkles, X, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { User, Briefcase, Award, GraduationCap, Code2, ArrowRight, EyeOff, Clock, Sparkles, X, ShieldAlert, CheckCircle2, Globe, FolderGit2, Link } from 'lucide-react';
 
 interface ReviewModalProps {
   isOpen: boolean;
@@ -27,6 +27,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
     onConfirmExport(candidateCv);
   };
 
+  const portfolioLink = candidateCv.personal_information.portfolio_url || candidateCv.personal_information.website || candidateCv.personal_information.linkedin || '';
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-md">
       <div className="bg-slate-900 border border-slate-800 rounded-2xl max-w-4xl w-full p-6 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
@@ -41,7 +43,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-400 mt-1">
-              Tinjau dan konfirmasi hasil kualifikasi kandidat sebelum dicetak ke template PT <strong>{template.company_name}</strong>.
+              Tinjau kualifikasi kandidat, <strong>Link Portfolio</strong>, &amp; <strong>Pengalaman Proyek</strong> sebelum dicetak ke template PT <strong>{template.company_name}</strong>.
             </p>
           </div>
 
@@ -60,9 +62,9 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start gap-2.5">
           <ShieldAlert className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-bold">Perhatian Kerahasiaan CV Perusahaan (Candidate Privacy Safeguard):</p>
+            <p className="font-bold">Informasi Kontak vs. Link Portfolio Kandidat:</p>
             <p className="text-[11px] text-amber-300/80 mt-0.5">
-              Informasi kontak pribadi kandidat (Email Pribadi, No. Telp Pribadi, Alamat Rumah) telah disembunyikan secara otomatis. CV akan dihasilkan sebagai profil profesional resmi PT <strong>{template.company_name}</strong>.
+              Email Pribadi &amp; No. HP disembunyikan. <strong>Link Portfolio / GitHub / Behance kandidat TETAP DIPERTAHANKAN</strong> untuk menunjukkan karya &amp; rekam jejak kandidat.
             </p>
           </div>
         </div>
@@ -74,7 +76,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 space-y-3 text-xs">
               <h3 className="font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-800 pb-2">
                 <User className="w-4 h-4 text-blue-400" />
-                <span>Profil Kandidat</span>
+                <span>Profil &amp; Portfolio Kandidat</span>
               </h3>
 
               <div>
@@ -106,11 +108,35 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               </div>
 
               <div>
-                <label className="text-slate-500 text-[10px] block mb-0.5">Senioritas & Lama Pengalaman &#123;years_of_experience&#125;</label>
+                <label className="text-slate-500 text-[10px] block mb-0.5">Senioritas &amp; Lama Pengalaman &#123;years_of_experience&#125;</label>
                 <div className="inline-flex items-center space-x-2 px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-bold text-xs">
                   <Clock className="w-3.5 h-3.5" />
                   <span>{candidateCv.years_of_experience}</span>
                 </div>
+              </div>
+
+              {/* Portfolio Link Display */}
+              <div>
+                <label className="text-slate-500 text-[10px] block mb-0.5 flex items-center gap-1">
+                  <Globe className="w-3 h-3 text-sky-400" />
+                  <span>Link Portfolio / GitHub &#123;portfolio_url&#125;</span>
+                </label>
+                <input
+                  type="text"
+                  value={portfolioLink}
+                  onChange={(e) =>
+                    setCandidateCv({
+                      ...candidateCv,
+                      personal_information: {
+                        ...candidateCv.personal_information,
+                        portfolio_url: e.target.value,
+                        website: e.target.value,
+                      },
+                    })
+                  }
+                  placeholder="https://github.com/username atau portfolio"
+                  className="w-full px-2.5 py-1.5 rounded-lg bg-slate-900 border border-slate-800 text-sky-300 font-mono text-[11px]"
+                />
               </div>
 
               <div className="p-2 rounded-lg bg-slate-900 border border-slate-800 text-[10px] text-slate-400 space-y-1">
@@ -162,12 +188,18 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             </div>
           </div>
 
-          {/* Right Column: Work Experience & Education */}
+          {/* Right Column: Work Experience, Project History & Education */}
           <div className="md:col-span-2 space-y-4">
             <div className="bg-slate-950/60 border border-slate-800 rounded-xl p-4 text-xs">
-              <h3 className="font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 border-b border-slate-800 pb-2">
-                <Briefcase className="w-4 h-4 text-blue-400" />
-                <span>Pengalaman Kerja &#123;professional_experience&#125; ({candidateCv.work_experience.length})</span>
+              <h3 className="font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-800 pb-2">
+                <div className="flex items-center gap-1.5">
+                  <Briefcase className="w-4 h-4 text-blue-400" />
+                  <span>Pengalaman Kerja &amp; Proyek &#123;professional_experience&#125; ({candidateCv.work_experience.length})</span>
+                </div>
+                <span className="text-[10px] text-emerald-400 font-semibold flex items-center gap-1">
+                  <FolderGit2 className="w-3.5 h-3.5" />
+                  <span>Proyek Di-extract</span>
+                </span>
               </h3>
 
               <div className="space-y-4">
@@ -189,6 +221,32 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                         </li>
                       ))}
                     </ul>
+
+                    {/* Extracted Projects per Employment Record */}
+                    {job.projects && job.projects.length > 0 && (
+                      <div className="mt-2.5 p-2.5 rounded-lg bg-slate-900/80 border border-slate-800 space-y-1.5">
+                        <p className="font-bold text-emerald-400 text-[10px] flex items-center gap-1">
+                          <FolderGit2 className="w-3 h-3" />
+                          <span>Detail Pengalaman Proyek ({job.projects.length}):</span>
+                        </p>
+                        {job.projects.map((proj, pIdx) => (
+                          <div key={pIdx} className="text-[11px] text-slate-300 pl-2 border-l border-emerald-500/40">
+                            <p className="font-bold text-white">
+                              ▸ {proj.name}
+                              {proj.link && (
+                                <a href={proj.link} target="_blank" rel="noreferrer" className="text-sky-400 ml-1.5 underline">
+                                  [{proj.link}]
+                                </a>
+                              )}
+                            </p>
+                            <p className="text-[10px] text-slate-400">{proj.description}</p>
+                            {proj.technologies.length > 0 && (
+                              <p className="text-[9.5px] text-emerald-300 font-mono">Tech: {proj.technologies.join(', ')}</p>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -244,7 +302,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             className="px-6 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/25 flex items-center space-x-2 transition-all transform active:scale-95"
           >
             <CheckCircle2 className="w-4 h-4 text-white" />
-            <span>Konfirmasi & Hasilkan CV Perusahaan</span>
+            <span>Konfirmasi &amp; Hasilkan CV Perusahaan</span>
             <ArrowRight className="w-4 h-4" />
           </button>
         </div>

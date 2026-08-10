@@ -39,10 +39,17 @@ export async function renderDocxFromTemplate(
         const positionStr = job.position || 'Professional Role';
         const dateStr = job.start_date || job.end_date ? ` (${job.start_date} - ${job.end_date})` : '';
         const respText = job.responsibilities.map((r) => `  • ${r}`).join('\n');
+        const projText = job.projects && job.projects.length > 0
+          ? `\n  [Projects]:\n` + job.projects.map((p) => `    - ${p.name}: ${p.description}${p.technologies.length > 0 ? ` (Tech: ${p.technologies.join(', ')})` : ''}${p.link ? ` [${p.link}]` : ''}`).join('\n')
+          : '';
 
-        return `${positionStr} — ${companyStr}${dateStr}\n${respText}`;
+        return `${positionStr} — ${companyStr}${dateStr}\n${respText}${projText}`;
       })
       .join('\n\n');
+
+    const keyProjectsText = (cv.key_projects || [])
+      .map((p) => `• ${p.name}: ${p.description} ${p.technologies.length > 0 ? `(Tech: ${p.technologies.join(', ')})` : ''} ${p.link ? `[${p.link}]` : ''}`)
+      .join('\n');
 
     const technicalQualificationText = cv.technical_qualifications
       .map((t) => `• ${t}`)
@@ -65,6 +72,12 @@ export async function renderDocxFromTemplate(
       dates: `${job.start_date} - ${job.end_date}`,
       responsibilities: job.responsibilities.map((r) => `• ${r}`).join('\n'),
       responsibilities_list: job.responsibilities.map((r) => ({ detail: r })),
+      projects_list: (job.projects || []).map((p) => ({
+        name: p.name,
+        description: p.description,
+        tech: p.technologies.join(', '),
+        link: p.link || '',
+      })),
     }));
 
     const skillsList = cv.technical_qualifications.map((s) => ({
@@ -86,6 +99,8 @@ export async function renderDocxFromTemplate(
       date: c.date,
     }));
 
+    const portfolioLink = cv.personal_information.portfolio_url || cv.personal_information.website || cv.personal_information.linkedin || '';
+
     // Comprehensive Placeholder Dictionary
     const templateData: Record<string, unknown> = {
       // Company Info Placeholders
@@ -100,7 +115,7 @@ export async function renderDocxFromTemplate(
       Company_phone: template.company_phone || '+62 21 500 8000',
       company_code: template.code,
 
-      // 1. Full Name Placeholders
+      // Candidate Profile & Portfolio Links
       Nama_lengkap: cv.personal_information.full_name || 'Candidate',
       nama_lengkap: cv.personal_information.full_name || 'Candidate',
       NAMA_LENGKAP: cv.personal_information.full_name || 'Candidate',
@@ -111,7 +126,15 @@ export async function renderDocxFromTemplate(
       Name: cv.personal_information.full_name || 'Candidate',
       name: cv.personal_information.full_name || 'Candidate',
 
-      // 2. Candidate Role Placeholders
+      portfolio: portfolioLink,
+      Portfolio: portfolioLink,
+      portfolio_url: portfolioLink,
+      Portfolio_url: portfolioLink,
+      portfolio_link: portfolioLink,
+      linkedin: cv.personal_information.linkedin || '',
+      github: portfolioLink,
+
+      // Candidate Role Placeholders
       role: cv.role || 'Candidate',
       Role: cv.role || 'Candidate',
       ROLE: cv.role || 'Candidate',
@@ -120,7 +143,7 @@ export async function renderDocxFromTemplate(
       position: cv.role || 'Candidate',
       Position: cv.role || 'Candidate',
 
-      // 3. Years of Experience & Seniority Placeholders
+      // Years of Experience & Seniority Placeholders
       years_of_experience: cv.years_of_experience || 'Junior (1 Year)',
       Years_of_experience: cv.years_of_experience || 'Junior (1 Year)',
       YEARS_OF_EXPERIENCE: cv.years_of_experience || 'Junior (1 Year)',
@@ -131,7 +154,7 @@ export async function renderDocxFromTemplate(
       seniority_level: cv.seniority_level || 'Junior',
       experience_years: cv.years_of_experience || 'Junior (1 Year)',
 
-      // 4. About Me & Summary Placeholders
+      // About Me & Summary Placeholders
       about_me: cv.about_me || cv.summary || '',
       About_me: cv.about_me || cv.summary || '',
       ABOUT_ME: cv.about_me || cv.summary || '',
@@ -142,7 +165,7 @@ export async function renderDocxFromTemplate(
       profil: cv.about_me || cv.summary || '',
       Profil: cv.about_me || cv.summary || '',
 
-      // 5. Professional Experience Placeholders
+      // Professional Experience & Projects
       professional_experience: professionalExperienceText,
       Professional_experience: professionalExperienceText,
       PROFESSIONAL_EXPERIENCE: professionalExperienceText,
@@ -156,7 +179,17 @@ export async function renderDocxFromTemplate(
       Pengalaman_kerja: professionalExperienceText,
       'Pengalaman Kerja': professionalExperienceText,
 
-      // 6. Technical Qualification Placeholders
+      // Project Experience Placeholders
+      key_projects: keyProjectsText,
+      Key_projects: keyProjectsText,
+      projects: keyProjectsText,
+      Projects: keyProjectsText,
+      project_experience: keyProjectsText,
+      'Project Experience': keyProjectsText,
+      pengalaman_proyek: keyProjectsText,
+      'Pengalaman Proyek': keyProjectsText,
+
+      // Technical Qualification Placeholders
       technical_qualification: technicalQualificationText,
       Technical_qualification: technicalQualificationText,
       TECHNICAL_QUALIFICATION: technicalQualificationText,
@@ -171,7 +204,7 @@ export async function renderDocxFromTemplate(
       kualifikasi_teknikal: technicalQualificationText,
       'Kualifikasi Teknikal': technicalQualificationText,
 
-      // 7. Education Placeholders
+      // Education Placeholders
       education: educationText,
       Education: educationText,
       EDUCATION: educationText,
@@ -180,7 +213,7 @@ export async function renderDocxFromTemplate(
       riwayat_pendidikan: educationText,
       'Riwayat Pendidikan': educationText,
 
-      // 8. Certification Placeholders
+      // Certification Placeholders
       certifications: certificationsText,
       Certifications: certificationsText,
       CERTIFICATIONS: certificationsText,
@@ -189,7 +222,7 @@ export async function renderDocxFromTemplate(
       sertifikat: certificationsText,
       Sertifikat: certificationsText,
 
-      // 9. Loop Arrays
+      // Loop Arrays
       work_experiences: experienceList,
       professional_experiences: experienceList,
       skills_list: skillsList,
