@@ -27,8 +27,12 @@ export async function renderDocxFromTemplate(
     // 3. Format candidate data mapping into target DOCX placeholders
     const professionalExperienceText = cv.work_experience
       .map((job) => {
-        const respText = job.responsibilities.map((r) => `• ${r}`).join('\n');
-        return `${job.position} — ${job.company} (${job.start_date} - ${job.end_date})\n${respText}`;
+        const companyStr = job.company || 'Company / Enterprise';
+        const positionStr = job.position || 'Professional Role';
+        const dateStr = job.start_date || job.end_date ? ` (${job.start_date} - ${job.end_date})` : '';
+        const respText = job.responsibilities.map((r) => `  • ${r}`).join('\n');
+
+        return `${positionStr} — ${companyStr}${dateStr}\n${respText}`;
       })
       .join('\n\n');
 

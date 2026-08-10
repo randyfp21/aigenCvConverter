@@ -1,11 +1,7 @@
-import { CanonicalCV } from '@/types/cv';
+import { CanonicalCV, WorkExperience } from '@/types/cv';
 
 /**
  * Calculates total years of experience from work history dates.
- * Categorizes seniority:
- * - 1-3 Years: Junior
- * - 3-5 Years: Middle
- * - 5+ Years: Senior
  */
 export function calculateExperienceSeniority(workExperiences: Array<{ start_date: string; end_date: string }>): {
   totalYears: number;
@@ -94,37 +90,28 @@ export function generateConciseAboutMe(
 }
 
 /**
- * Ultra-Resilient Multi-Format Work Experience Extractor
+ * Ultra-Resilient Work Experience Extractor
+ * Strictly ignores contact lines (emails, phone numbers, addresses, social links) and extracts:
+ * - Perusahaan (Company)
+ * - Role / Position
+ * - Lama Kerja (Start & End Date)
+ * - Detail Responsibilities
  */
-export function parseWorkExperiences(lines: string[]): Array<{
-  id: string;
-  company: string;
-  position: string;
-  location: string;
-  start_date: string;
-  end_date: string;
-  is_current: boolean;
-  responsibilities: string[];
-  projects: [];
-}> {
-  const experiences: Array<{
-    id: string;
-    company: string;
-    position: string;
-    location: string;
-    start_date: string;
-    end_date: string;
-    is_current: boolean;
-    responsibilities: string[];
-    projects: [];
-  }> = [];
-
+export function parseWorkExperiences(lines: string[]): WorkExperience[] {
+  const experiences: WorkExperience[] = [];
   if (lines.length === 0) return experiences;
 
-  // Broad job title regex matching English & Indonesian roles
-  const jobTitleKeywords = /engineer|manager|developer|architect|analyst|lead|consultant|specialist|officer|staff|administrator|designer|director|head|supervisor|intern|magang|pengembang|manajer|pranata|tenaga|programer|programmer|lead/i;
+  // Filter out contact lines (email, phone, address, linkedin, github)
+  const isContactLine = (l: string) =>
+    /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(l) ||
+    /(\+?\d{1,4}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}/.test(l) ||
+    /linkedin\.com|github\.com|http|www\./i.test(l);
 
-  // Date regex supporting month names (EN/ID), numerical dates 06/2020, and years 2019-2024
+  const cleanLines = lines.filter((l) => !isContactLine(l));
+  if (cleanLines.length === 0) return experiences;
+
+  const jobTitleKeywords = /engineer|manager|developer|architect|analyst|lead|consultant|specialist|officer|staff|administrator|designer|director|head|supervisor|intern|magang|pengembang|manajer|pranata|tenaga|programer|programmer/i;
+  const companyKeywords = /pt\s|inc\b|ltd\b|corp\b|group\b|tech\b|solutions\b|bank\b|studio\b|indonesia|nusa| global| digital| labs|agency|consulting|freelance|self-employed/i;
   const datePattern = /(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|\d{1,2}\/\d{2,4}|\b\d{4}\b)\s*[-–—to\s]+\s*(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec|januari|februari|maret|april|mei|juni|juli|agustus|september|oktober|november|desember|\d{1,2}\/\d{2,4}|\b\d{4}\b|present|current|sekarang|saat ini|\bnow\b)|\b\d{4}\s*[-–—]\s*\d{4}\b)/i;
 
   let currentJob: {
@@ -137,17 +124,17 @@ export function parseWorkExperiences(lines: string[]): Array<{
     responsibilities: string[];
   } | null = null;
 
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i].trim();
+  for (let i = 0; i < cleanLines.length; i++) {
+    const line = cleanLines[i].trim();
     if (!line) continue;
 
     const hasDate = datePattern.test(line);
     const hasJobTitle = jobTitleKeywords.test(line);
-    const hasCompany = /pt\s|inc\b|ltd\b|corp\b|group\b|tech\b|solutions\b|bank\b|studio\b/i.test(line);
+    const hasCompany = companyKeywords.test(line);
     const isBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || /^\d+[.)]/.test(line);
 
-    // Header Trigger: If line has dates OR (job title / company AND NOT a bullet point)
-    if (!isBullet && (hasDate || (hasJobTitle && (hasCompany || i + 1 < lines.length)))) {
+    // Entry header trigger: Line has Date OR (JobTitle/Company AND NOT bullet point)
+    if (!isBullet && (hasDate || hasJobTitle || hasCompany)) {
       if (currentJob && (currentJob.position || currentJob.company)) {
         experiences.push({
           id: Math.random().toString(36).substring(2, 9),
@@ -156,7 +143,6 @@ export function parseWorkExperiences(lines: string[]): Array<{
         });
       }
 
-      // Extract Date String if present
       const dateMatch = line.match(datePattern);
       const dateStr = dateMatch ? dateMatch[0] : '';
       const isCurrent = /present|current|sekarang|saat ini|now/i.test(dateStr);
@@ -164,23 +150,33 @@ export function parseWorkExperiences(lines: string[]): Array<{
       const cleanLine = line.replace(dateStr, '').replace(/[()]/g, '').trim();
       const parts = cleanLine.split(/[-|–—•@]/).map((p) => p.trim()).filter((p) => p.length > 0);
 
-      let position = 'Professional';
-      let company = 'Company';
+      let position = '';
+      let company = '';
 
       if (parts.length >= 2) {
-        position = parts[0];
-        company = parts[1];
+        if (jobTitleKeywords.test(parts[0])) {
+          position = parts[0];
+          company = parts[1];
+        } else {
+          company = parts[0];
+          position = parts[1];
+        }
       } else if (parts.length === 1) {
         if (hasJobTitle) {
           position = parts[0];
-          // Check if next line contains company name
-          if (i + 1 < lines.length && !datePattern.test(lines[i + 1]) && !lines[i + 1].startsWith('•')) {
-            company = lines[i + 1].trim();
-            i++; // consume next line
+          if (i + 1 < cleanLines.length && !datePattern.test(cleanLines[i + 1]) && !cleanLines[i + 1].startsWith('•')) {
+            company = cleanLines[i + 1].trim();
+            i++;
+          } else {
+            company = 'Company / Enterprise';
           }
         } else {
           company = parts[0];
+          position = 'Professional Role';
         }
+      } else {
+        position = 'Professional Role';
+        company = 'Company / Enterprise';
       }
 
       const datesSplit = dateStr.split(/[-–—to]+/i).map((d) => d.trim());
@@ -198,7 +194,7 @@ export function parseWorkExperiences(lines: string[]): Array<{
       };
     } else if (currentJob) {
       const cleanBullet = line.replace(/^[•\-*\d.+)]\s*/, '').trim();
-      if (cleanBullet.length > 0 && cleanBullet.length < 300) {
+      if (cleanBullet.length > 0 && cleanBullet.length < 350) {
         currentJob.responsibilities.push(cleanBullet);
       }
     }
@@ -208,22 +204,6 @@ export function parseWorkExperiences(lines: string[]): Array<{
     experiences.push({
       id: Math.random().toString(36).substring(2, 9),
       ...currentJob,
-      projects: [],
-    });
-  }
-
-  // Fallback: If no structured experiences extracted, group all lines as 1 experience block
-  if (experiences.length === 0 && lines.length > 0) {
-    const responsibilities = lines.map((l) => l.replace(/^[•\-*\d.+)]\s*/, '').trim()).filter((l) => l.length > 0);
-    experiences.push({
-      id: 'job-fallback-1',
-      company: 'Enterprise Record',
-      position: 'Professional Candidate',
-      location: '',
-      start_date: '',
-      end_date: '',
-      is_current: false,
-      responsibilities,
       projects: [],
     });
   }
@@ -283,22 +263,12 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
 
   if (lines.length === 0) return cv;
 
-  // 1. Candidate Full Name
-  for (const line of lines.slice(0, 5)) {
-    if (!line.includes('@') && !line.includes('http') && line.length < 50) {
-      cv.personal_information.full_name = line;
-      break;
-    }
-  }
-  if (!cv.personal_information.full_name) {
-    cv.personal_information.full_name = lines[0] || 'Candidate';
-  }
-
   // Contact Regexes
   const emailRegex = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g;
   const phoneRegex = /(\+?\d{1,4}[-.\s]?)?(\(?\d{2,4}\)?[-.\s]?)?\d{3,5}[-.\s]?\d{3,5}/g;
   const linkedinRegex = /(linkedin\.com\/in\/[a-zA-Z0-9_-]+)/i;
 
+  // 1. Extract Contact Info & Candidate Full Name
   for (const line of lines.slice(0, 20)) {
     const emailMatches = line.match(emailRegex);
     if (emailMatches && !cv.personal_information.email) {
@@ -314,6 +284,30 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
       if (p.length >= 7 && !p.includes('@')) {
         cv.personal_information.phone = p;
       }
+    }
+  }
+
+  // Full Name is the first line that does NOT contain contact details
+  for (const line of lines.slice(0, 5)) {
+    if (!line.includes('@') && !line.includes('http') && !phoneRegex.test(line) && line.length < 50) {
+      cv.personal_information.full_name = line;
+      break;
+    }
+  }
+  if (!cv.personal_information.full_name) {
+    cv.personal_information.full_name = lines[0] || 'Candidate';
+  }
+
+  // Extract candidate headline / role from top header lines (e.g. "Fullstack JavaScript Developer")
+  for (const line of lines.slice(1, 6)) {
+    if (
+      !line.includes('@') &&
+      !line.includes('http') &&
+      !phoneRegex.test(line) &&
+      /developer|engineer|manager|architect|analyst|designer|consultant|specialist|lead/i.test(line)
+    ) {
+      cv.role = line;
+      break;
     }
   }
 
@@ -412,7 +406,6 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
   // 3. Process Work Experiences
   const workLines = [...sectionContent.work_experience];
   if (workLines.length === 0 && sectionContent.other.length > 0) {
-    // Secondary fallback scan if work_experience section was missing
     for (const l of sectionContent.other) {
       if (/engineer|manager|developer|analyst|lead|consultant|specialist|officer|staff|pt |inc|ltd|\d{4}/i.test(l)) {
         workLines.push(l);
@@ -422,11 +415,9 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
 
   cv.work_experience = parseWorkExperiences(workLines);
 
-  // 4. Derive Candidate Role
-  if (cv.work_experience.length > 0 && cv.work_experience[0].position) {
+  // 4. Set Candidate Role if not found in header
+  if (cv.role === 'Candidate' && cv.work_experience.length > 0 && cv.work_experience[0].position) {
     cv.role = cv.work_experience[0].position;
-  } else {
-    cv.role = 'Professional Candidate';
   }
 
   // 5. Calculate Seniority & Experience
