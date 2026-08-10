@@ -1,6 +1,13 @@
 import { CanonicalCV, WorkExperience } from '@/types/cv';
 
 /**
+ * Escapes special regex characters in a string.
+ */
+function escapeRegExp(str: string): string {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+/**
  * Calculates total years of experience from work history dates.
  */
 export function calculateExperienceSeniority(workExperiences: Array<{ start_date: string; end_date: string }>): {
@@ -91,17 +98,11 @@ export function generateConciseAboutMe(
 
 /**
  * Ultra-Resilient Work Experience Extractor
- * Strictly ignores contact lines (emails, phone numbers, addresses, social links) and extracts:
- * - Perusahaan (Company)
- * - Role / Position
- * - Lama Kerja (Start & End Date)
- * - Detail Responsibilities
  */
 export function parseWorkExperiences(lines: string[]): WorkExperience[] {
   const experiences: WorkExperience[] = [];
   if (lines.length === 0) return experiences;
 
-  // Filter out contact lines (email, phone, address, linkedin, github)
   const isContactLine = (l: string) =>
     /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(l) ||
     /(\+?\d{1,4}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{3,5}[-.\s]?\d{3,5}/.test(l) ||
@@ -133,7 +134,6 @@ export function parseWorkExperiences(lines: string[]): WorkExperience[] {
     const hasCompany = companyKeywords.test(line);
     const isBullet = line.startsWith('•') || line.startsWith('-') || line.startsWith('*') || /^\d+[.)]/.test(line);
 
-    // Entry header trigger: Line has Date OR (JobTitle/Company AND NOT bullet point)
     if (!isBullet && (hasDate || hasJobTitle || hasCompany)) {
       if (currentJob && (currentJob.position || currentJob.company)) {
         experiences.push({
@@ -287,7 +287,6 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
     }
   }
 
-  // Full Name is the first line that does NOT contain contact details
   for (const line of lines.slice(0, 5)) {
     if (!line.includes('@') && !line.includes('http') && !phoneRegex.test(line) && line.length < 50) {
       cv.personal_information.full_name = line;
@@ -298,7 +297,6 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
     cv.personal_information.full_name = lines[0] || 'Candidate';
   }
 
-  // Extract candidate headline / role from top header lines (e.g. "Fullstack JavaScript Developer")
   for (const line of lines.slice(1, 6)) {
     if (
       !line.includes('@') &&
@@ -311,7 +309,7 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
     }
   }
 
-  // 2. Comprehensive Multilingual Section Headers
+  // 2. Section Headers Dictionary
   type SectionKey =
     | 'summary'
     | 'work_experience'
@@ -415,18 +413,17 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
 
   cv.work_experience = parseWorkExperiences(workLines);
 
-  // 4. Set Candidate Role if not found in header
   if (cv.role === 'Candidate' && cv.work_experience.length > 0 && cv.work_experience[0].position) {
     cv.role = cv.work_experience[0].position;
   }
 
-  // 5. Calculate Seniority & Experience
+  // 4. Calculate Seniority & Experience
   const expCalc = calculateExperienceSeniority(cv.work_experience);
   cv.total_years_num = expCalc.totalYears;
   cv.seniority_level = expCalc.seniority;
   cv.years_of_experience = expCalc.formattedString;
 
-  // 6. Process Technical Qualifications
+  // 5. Process Technical Qualifications
   const combinedSkillLines = [...sectionContent.technical_qualifications, ...sectionContent.skills];
   const detectedSkills: string[] = [];
 
@@ -441,9 +438,12 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
       'React', 'Next.js', 'Node.js', 'Express', 'Vue', 'Angular', 'Spring Boot', 'Tailwind',
       'PostgreSQL', 'MySQL', 'MongoDB', 'Redis', 'Kafka', 'Docker', 'Kubernetes', 'AWS', 'GCP', 'Git'
     ];
+
     for (const line of lines) {
       for (const tech of commonTechTerms) {
-        const regex = new RegExp(`\\b${tech}\\b`, 'i');
+        const escaped = escapeRegExp(tech);
+        // Use escaped regex without unsafe boundary issues
+        const regex = new RegExp(`(?:^|\\s|\\b)${escaped}(?:$|\\s|\\b)`, 'i');
         if (regex.test(line) && !detectedSkills.includes(tech)) {
           detectedSkills.push(tech);
         }
@@ -452,7 +452,7 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
   }
   cv.technical_qualifications = Array.from(new Set(detectedSkills));
 
-  // 7. Concise About Me Generator
+  // 6. Concise About Me Generator
   const rawSummaryText = sectionContent.summary.join(' ');
   cv.about_me = generateConciseAboutMe(
     cv.personal_information.full_name,
@@ -464,7 +464,7 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
   );
   cv.summary = cv.about_me;
 
-  // 8. Process Certifications
+  // 7. Process Certifications
   const certLines = [...sectionContent.certifications];
   if (certLines.length === 0) {
     for (const line of lines) {
@@ -486,7 +486,7 @@ export function extractCanonicalCvFromText(rawText: string): CanonicalCV {
     }
   }
 
-  // 9. Process Education
+  // 8. Process Education
   const eduLines = [...sectionContent.education];
   if (eduLines.length === 0) {
     for (const line of lines) {
