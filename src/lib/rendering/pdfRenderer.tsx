@@ -38,11 +38,11 @@ export async function generatePdfBuffer(
 
   const styles = StyleSheet.create({
     page: {
-      paddingTop: 36,
-      paddingBottom: 48,
-      paddingHorizontal: 40,
+      paddingTop: 28,
+      paddingBottom: 36,
+      paddingHorizontal: 32,
       fontFamily: 'Helvetica',
-      fontSize: 10,
+      fontSize: 9.5,
       color: theme.text_color || '#1F2937',
       backgroundColor: '#FFFFFF',
     },
@@ -50,10 +50,10 @@ export async function generatePdfBuffer(
       flexDirection: 'row',
       justifyContent: 'space-between',
       alignItems: 'center',
-      paddingBottom: 12,
-      borderBottomWidth: 2,
+      paddingBottom: 8,
+      borderBottomWidth: 1.5,
       borderBottomColor: sepColor,
-      marginBottom: 16,
+      marginBottom: 10,
     },
     headerLeft: {
       flex: 1,
@@ -63,123 +63,124 @@ export async function generatePdfBuffer(
       justifyContent: 'center',
     },
     logoImage: {
-      width: 52,
-      height: 52,
+      width: 44,
+      height: 44,
       objectFit: 'contain',
-      borderRadius: 6,
+      borderRadius: 4,
     },
     name: {
-      fontSize: 22,
+      fontSize: 18,
       fontWeight: 'bold',
       color: primaryColor,
     },
     roleText: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: 'bold',
       color: sepColor,
-      marginTop: 2,
+      marginTop: 1,
     },
     portfolioText: {
-      fontSize: 8.5,
+      fontSize: 8,
       color: '#475569',
-      marginTop: 3,
+      marginTop: 2,
     },
     sectionContainer: {
-      marginBottom: 14,
+      marginBottom: 9,
     },
     sectionTitle: {
-      fontSize: 11,
+      fontSize: 10,
       fontWeight: 'bold',
       color: primaryColor,
-      borderBottomWidth: 1.5,
+      borderBottomWidth: 1,
       borderBottomColor: sepColor,
-      paddingBottom: 3,
-      marginBottom: 8,
+      paddingBottom: 2,
+      marginBottom: 5,
       textTransform: 'uppercase',
     },
     summaryText: {
-      fontSize: 9.5,
-      lineHeight: 1.4,
+      fontSize: 9,
+      lineHeight: 1.3,
       color: '#374151',
     },
     jobContainer: {
-      marginBottom: 10,
+      marginBottom: 6,
     },
     jobHeader: {
       flexDirection: 'row',
       justifyContent: 'space-between',
-      marginBottom: 2,
+      marginBottom: 1,
     },
     jobTitle: {
-      fontSize: 10.5,
+      fontSize: 9.5,
       fontWeight: 'bold',
       color: '#111827',
     },
     companyText: {
-      fontSize: 9.5,
+      fontSize: 9,
       fontWeight: 'bold',
       color: sepColor,
+      marginBottom: 2,
     },
     jobDate: {
-      fontSize: 9,
+      fontSize: 8.5,
       color: '#6B7280',
     },
     bulletItem: {
-      fontSize: 9,
-      lineHeight: 1.35,
-      marginBottom: 2.5,
-      paddingLeft: 8,
+      fontSize: 8.5,
+      lineHeight: 1.28,
+      marginBottom: 1.5,
+      paddingLeft: 6,
       color: '#374151',
     },
     projectBullet: {
-      fontSize: 8.5,
-      lineHeight: 1.3,
-      marginBottom: 2,
-      paddingLeft: 14,
+      fontSize: 8,
+      lineHeight: 1.25,
+      marginBottom: 1.5,
+      paddingLeft: 12,
       color: '#0F766E',
     },
     skillBadge: {
-      fontSize: 8.5,
+      fontSize: 8,
       backgroundColor: '#F1F5F9',
       color: primaryColor,
-      paddingHorizontal: 6,
-      paddingVertical: 3,
+      paddingHorizontal: 5,
+      paddingVertical: 2,
       borderRadius: 3,
-      marginRight: 4,
-      marginBottom: 4,
+      marginRight: 3,
+      marginBottom: 3,
     },
     skillsWrap: {
       flexDirection: 'row',
       flexWrap: 'wrap',
     },
     certItem: {
-      fontSize: 9,
+      fontSize: 8.5,
       color: '#1F2937',
-      marginBottom: 2,
+      marginBottom: 1.5,
     },
     eduItem: {
-      fontSize: 9,
-      marginBottom: 3,
+      fontSize: 8.5,
+      marginBottom: 2,
       color: '#1F2937',
     },
     footer: {
       position: 'absolute',
-      bottom: 18,
-      left: 40,
-      right: 40,
-      fontSize: 8,
+      bottom: 14,
+      left: 32,
+      right: 32,
+      fontSize: 7.5,
       textAlign: 'center',
       color: '#64748B',
-      borderTopWidth: 1,
+      borderTopWidth: 0.8,
       borderTopColor: sepColor,
-      paddingTop: 6,
+      paddingTop: 4,
     },
   });
 
   const PdfDocument = (
     <Document title={`Candidate Profile - ${cv.personal_information.full_name}`}>
       <Page size="A4" style={styles.page}>
-        {/* Top Header with Candidate Info Left & Top-Right Company Logo */}
+        {/* Compact Header: Candidate Info Left & Top-Right Company Logo */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <Text style={styles.name}>{cv.personal_information.full_name || 'Candidate Profile'}</Text>
@@ -197,15 +198,15 @@ export async function generatePdfBuffer(
             ) : (
               <View
                 style={{
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   backgroundColor: primaryColor,
-                  borderRadius: 6,
+                  borderRadius: 4,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>
+                <Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: 'bold' }}>
                   {company_name.substring(0, 4)}
                 </Text>
               </View>
@@ -213,7 +214,7 @@ export async function generatePdfBuffer(
           </View>
         </View>
 
-        {/* Dynamic Sections Based on Template Layout */}
+        {/* Dynamic Compact Sections */}
         {layout.section_order.map((sectionKey) => {
           if (sectionKey === 'summary' && (cv.about_me || cv.summary)) {
             return (
@@ -239,7 +240,7 @@ export async function generatePdfBuffer(
                     <Text style={styles.companyText}>{job.company}</Text>
                     {job.responsibilities.map((resp, rIdx) => (
                       <Text key={rIdx} style={styles.bulletItem}>
-                        - {resp}
+                        • {resp}
                       </Text>
                     ))}
                     {job.projects && job.projects.length > 0
@@ -262,7 +263,7 @@ export async function generatePdfBuffer(
                 <View style={styles.skillsWrap}>
                   {cv.technical_qualifications.map((qual, qIdx) => (
                     <Text key={qIdx} style={styles.skillBadge}>
-                      - {qual}
+                      ✓ {qual}
                     </Text>
                   ))}
                 </View>

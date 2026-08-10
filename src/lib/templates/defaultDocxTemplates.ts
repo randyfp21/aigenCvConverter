@@ -14,7 +14,7 @@ import {
 } from 'docx';
 
 /**
- * Creates an official target DOCX template buffer containing exact placeholders:
+ * Creates an official target DOCX template buffer with compact spacing (no wasted white spaces):
  * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
  * {professional_experience}, {technical_qualification}, {education}, {certifications},
  * {company_name}, {company_address}, {company_website}, {company_phone}
@@ -35,10 +35,10 @@ export async function createOfficialCompanyDocxTemplate(
         properties: {
           page: {
             margin: {
-              top: 720,
-              bottom: 720,
-              left: 720,
-              right: 720,
+              top: 540,
+              bottom: 540,
+              left: 540,
+              right: 540,
             },
           },
         },
@@ -64,7 +64,7 @@ export async function createOfficialCompanyDocxTemplate(
                               new TextRun({
                                 text: `{company_name}`,
                                 bold: true,
-                                size: 18,
+                                size: 16,
                                 color: cleanPrimary,
                                 font: 'Calibri',
                               }),
@@ -87,7 +87,7 @@ export async function createOfficialCompanyDocxTemplate(
                               new TextRun({
                                 text: `LOGO`,
                                 bold: true,
-                                size: 16,
+                                size: 14,
                                 color: '0284C7',
                                 font: 'Calibri',
                               }),
@@ -110,7 +110,7 @@ export async function createOfficialCompanyDocxTemplate(
                 children: [
                   new TextRun({
                     text: `{company_name}  •  {company_address}  •  {company_website}  •  Tel: {company_phone}`,
-                    size: 15,
+                    size: 14,
                     color: '64748B',
                     font: 'Calibri',
                   }),
@@ -126,11 +126,12 @@ export async function createOfficialCompanyDocxTemplate(
               new TextRun({
                 text: '{Nama_lengkap}',
                 bold: true,
-                size: 36,
+                size: 32,
                 color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
+            spacing: { after: 60 },
           }),
 
           new Paragraph({
@@ -138,24 +139,24 @@ export async function createOfficialCompanyDocxTemplate(
               new TextRun({
                 text: '{role}',
                 bold: true,
-                size: 22,
+                size: 20,
                 color: '0284C7',
                 font: 'Calibri',
               }),
               new TextRun({
                 text: '  •  ',
-                size: 20,
+                size: 18,
                 color: '94A3B8',
               }),
               new TextRun({
                 text: '{years_of_experience}',
                 bold: true,
-                size: 20,
+                size: 18,
                 color: '10B981',
                 font: 'Calibri',
               }),
             ],
-            spacing: { after: 300 },
+            spacing: { after: 160 },
           }),
 
           // SECTION 1: ABOUT ME
@@ -164,24 +165,24 @@ export async function createOfficialCompanyDocxTemplate(
               new TextRun({
                 text: 'SUMMARY ABOUT ME',
                 bold: true,
-                size: 22,
+                size: 20,
                 color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' } },
-            spacing: { before: 200, after: 120 },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0284C7' } },
+            spacing: { before: 120, after: 60 },
           }),
           new Paragraph({
             children: [
               new TextRun({
                 text: '{about_me}',
-                size: 20,
+                size: 18,
                 color: '1E293B',
                 font: 'Calibri',
               }),
             ],
-            spacing: { after: 300 },
+            spacing: { after: 160 },
           }),
 
           // SECTION 2: PROFESSIONAL EXPERIENCE
@@ -190,24 +191,24 @@ export async function createOfficialCompanyDocxTemplate(
               new TextRun({
                 text: 'PROFESSIONAL EXPERIENCE',
                 bold: true,
-                size: 22,
+                size: 20,
                 color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' } },
-            spacing: { before: 200, after: 120 },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0284C7' } },
+            spacing: { before: 120, after: 60 },
           }),
           new Paragraph({
             children: [
               new TextRun({
                 text: '{professional_experience}',
-                size: 20,
+                size: 18,
                 color: '1E293B',
                 font: 'Calibri',
               }),
             ],
-            spacing: { after: 300 },
+            spacing: { after: 160 },
           }),
 
           // SECTION 3: TECHNICAL QUALIFICATIONS
@@ -216,25 +217,25 @@ export async function createOfficialCompanyDocxTemplate(
               new TextRun({
                 text: 'TECHNICAL QUALIFICATIONS',
                 bold: true,
-                size: 22,
+                size: 20,
                 color: cleanPrimary,
                 font: 'Calibri',
               }),
             ],
-            border: { bottom: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' } },
-            spacing: { before: 200, after: 120 },
+            border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0284C7' } },
+            spacing: { before: 120, after: 60 },
           }),
           new Paragraph({
             children: [
               new TextRun({
                 text: '{technical_qualification}',
                 bold: true,
-                size: 20,
+                size: 18,
                 color: '0369A1',
                 font: 'Calibri',
               }),
             ],
-            spacing: { after: 300 },
+            spacing: { after: 160 },
           }),
 
           // SECTION 4: LIST EDUCATION & CERTIFICATIONS
@@ -257,19 +258,19 @@ export async function createOfficialCompanyDocxTemplate(
                           new TextRun({
                             text: 'LIST EDUCATION',
                             bold: true,
-                            size: 20,
+                            size: 18,
                             color: cleanPrimary,
                             font: 'Calibri',
                           }),
                         ],
-                        border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' } },
-                        spacing: { after: 100 },
+                        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '94A3B8' } },
+                        spacing: { after: 60 },
                       }),
                       new Paragraph({
                         children: [
                           new TextRun({
                             text: '{education}',
-                            size: 19,
+                            size: 17,
                             color: '334155',
                             font: 'Calibri',
                           }),
@@ -291,19 +292,19 @@ export async function createOfficialCompanyDocxTemplate(
                           new TextRun({
                             text: 'LIST CERTIFICATION',
                             bold: true,
-                            size: 20,
+                            size: 18,
                             color: cleanPrimary,
                             font: 'Calibri',
                           }),
                         ],
-                        border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '94A3B8' } },
-                        spacing: { after: 100 },
+                        border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '94A3B8' } },
+                        spacing: { after: 60 },
                       }),
                       new Paragraph({
                         children: [
                           new TextRun({
                             text: '{certifications}',
-                            size: 19,
+                            size: 17,
                             color: '334155',
                             font: 'Calibri',
                           }),
