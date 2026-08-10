@@ -1,26 +1,25 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
 import { CanonicalCV } from '@/types/cv';
 import { extractCanonicalCvFromText as ruleBasedFallbackExtract } from './cvExtractor';
 
 export async function extractCvWithGeminiAI(rawCvText: string): Promise<CanonicalCV> {
-  const apiKey = process.env.GEMINI_API_KEY || process.env.NEXT_PUBLIC_GEMINI_API_KEY;
+  const apiKey =
+    process.env.GEMINI_API_KEY ||
+    process.env.NEXT_PUBLIC_GEMINI_API_KEY ||
+    'AIzaSyB33tO93N2-PKflpVAmw9ooqdhxYIiwKgI';
 
-  if (!apiKey || apiKey.trim() === '' || apiKey === 'YOUR_GEMINI_API_KEY') {
+  if (!apiKey || apiKey.trim() === '') {
     console.warn('GEMINI_API_KEY not configured. Falling back to deterministic parser.');
     return ruleBasedFallbackExtract(rawCvText);
   }
 
-  try {
-    const genAI = new GoogleGenerativeAI(apiKey);
-    const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash',
-      generationConfig: {
-        responseMimeType: 'application/json',
-        temperature: 0.1,
-      },
-    });
+  const modelsToTry = [
+    'gemini-3-flash-preview',
+    'gemini-2.0-flash',
+    'gemini-3.1-flash-lite',
+    'gemini-flash-latest',
+  ];
 
-    const prompt = `
+  const prompt = `
 You are an Expert AI HR Specialist and Senior CV Analyst.
 Analyze the following candidate's raw CV text and produce a fully qualified, structured JSON payload.
 
@@ -64,85 +63,115 @@ ${rawCvText}
 """
 `;
 
-    const result = await model.generateContent(prompt);
-    const responseText = result.response.text();
-    const cleanJson = responseText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
-    const parsedData = JSON.parse(cleanJson);
+  for (const modelName of modelsToTry) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: 'application/json',
+            temperature: 0.1,
+          },
+        }),
+      });
 
-    const qualifiedCv: CanonicalCV = {
-      personal_information: {
-        full_name: parsedData.personal_information?.full_name || 'Candidate',
-        email: parsedData.personal_information?.email || '',
-        phone: parsedData.personal_information?.phone || '',
-        location: parsedData.personal_information?.location || '',
-        linkedin: parsedData.personal_information?.linkedin || '',
-        website: '',
-      },
-      role: parsedData.role || 'Professional Candidate',
-      years_of_experience: parsedData.years_of_experience || 'Junior (1 Year)',
-      seniority_level: parsedData.seniority_level || 'Junior',
-      total_years_num: typeof parsedData.total_years_num === 'number' ? parsedData.total_years_num : 1,
-      about_me: parsedData.about_me || parsedData.summary || '',
-      summary: parsedData.summary || parsedData.about_me || '',
-      work_experience: Array.isArray(parsedData.work_experience)
-        ? parsedData.work_experience.map((job: any, index: number) => ({
-            id: job.id || `job-ai-${index + 1}`,
-            company: job.company || 'Enterprise Company',
-            position: job.position || 'Professional Role',
-            location: job.location || '',
-            start_date: job.start_date || '',
-            end_date: job.end_date || '',
-            is_current: Boolean(job.is_current),
-            responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities : [],
-            projects: [],
-          }))
-        : [],
-      technical_qualifications: Array.isArray(parsedData.technical_qualifications)
-        ? parsedData.technical_qualifications
-        : [],
-      skills: {
-        programming_languages: [],
-        frameworks: [],
-        databases: [],
-        cloud: [],
-        devops: [],
-        tools: [],
-        other: [],
-      },
-      certifications: Array.isArray(parsedData.certifications)
-        ? parsedData.certifications.map((c: any, index: number) => ({
-            id: c.id || `cert-ai-${index + 1}`,
-            name: c.name || 'Certification',
-            issuer: c.issuer || '',
-            date: c.date || '',
-          }))
-        : [],
-      education: Array.isArray(parsedData.education)
-        ? parsedData.education.map((e: any, index: number) => ({
-            id: e.id || `edu-ai-${index + 1}`,
-            institution: e.institution || 'University',
-            degree: e.degree || '',
-            field_of_study: e.field_of_study || '',
-            start_date: e.start_date || '',
-            end_date: e.end_date || '',
-          }))
-        : [],
-      languages: [],
-      additional_information: [],
-      meta: {
-        extraction_confidence: 0.99,
-        source_stats: {
-          work_experience_count: parsedData.work_experience?.length || 0,
-          skills_count: parsedData.technical_qualifications?.length || 0,
-          certifications_count: parsedData.certifications?.length || 0,
-          education_count: parsedData.education?.length || 0,
+      if (!response.ok) {
+        console.warn(`Gemini model ${modelName} returned status ${response.status}. Trying next model...`);
+        continue;
+      }
+
+      const data = await response.json();
+      const responseText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
+      if (!responseText) {
+        console.warn(`Empty response from Gemini model ${modelName}. Trying next...`);
+        continue;
+      }
+
+      const cleanJson = responseText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
+      const parsedData = JSON.parse(cleanJson);
+
+      const qualifiedCv: CanonicalCV = {
+        personal_information: {
+          full_name: parsedData.personal_information?.full_name || 'Candidate',
+          email: parsedData.personal_information?.email || '',
+          phone: parsedData.personal_information?.phone || '',
+          location: parsedData.personal_information?.location || '',
+          linkedin: parsedData.personal_information?.linkedin || '',
+          website: '',
         },
-      },
-    };
+        role: parsedData.role || 'Professional Candidate',
+        years_of_experience: parsedData.years_of_experience || 'Junior (1 Year)',
+        seniority_level: parsedData.seniority_level || 'Junior',
+        total_years_num: typeof parsedData.total_years_num === 'number' ? parsedData.total_years_num : 1,
+        about_me: parsedData.about_me || parsedData.summary || '',
+        summary: parsedData.summary || parsedData.about_me || '',
+        work_experience: Array.isArray(parsedData.work_experience)
+          ? parsedData.work_experience.map((job: any, index: number) => ({
+              id: job.id || `job-ai-${index + 1}`,
+              company: job.company || 'Enterprise Company',
+              position: job.position || 'Professional Role',
+              location: job.location || '',
+              start_date: job.start_date || '',
+              end_date: job.end_date || '',
+              is_current: Boolean(job.is_current),
+              responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities : [],
+              projects: [],
+            }))
+          : [],
+        technical_qualifications: Array.isArray(parsedData.technical_qualifications)
+          ? parsedData.technical_qualifications
+          : [],
+        skills: {
+          programming_languages: [],
+          frameworks: [],
+          databases: [],
+          cloud: [],
+          devops: [],
+          tools: [],
+          other: [],
+        },
+        certifications: Array.isArray(parsedData.certifications)
+          ? parsedData.certifications.map((c: any, index: number) => ({
+              id: c.id || `cert-ai-${index + 1}`,
+              name: c.name || 'Certification',
+              issuer: c.issuer || '',
+              date: c.date || '',
+            }))
+          : [],
+        education: Array.isArray(parsedData.education)
+          ? parsedData.education.map((e: any, index: number) => ({
+              id: e.id || `edu-ai-${index + 1}`,
+              institution: e.institution || 'University',
+              degree: e.degree || '',
+              field_of_study: e.field_of_study || '',
+              start_date: e.start_date || '',
+              end_date: e.end_date || '',
+            }))
+          : [],
+        languages: [],
+        additional_information: [],
+        meta: {
+          extraction_confidence: 0.99,
+          source_stats: {
+            work_experience_count: parsedData.work_experience?.length || 0,
+            skills_count: parsedData.technical_qualifications?.length || 0,
+            certifications_count: parsedData.certifications?.length || 0,
+            education_count: parsedData.education?.length || 0,
+          },
+        },
+      };
 
-    return qualifiedCv;
-  } catch (error) {
-    console.error('Gemini AI Extraction Error, falling back to deterministic parser:', error);
-    return ruleBasedFallbackExtract(rawCvText);
+      console.log(`Successfully analyzed CV using Gemini AI (${modelName})`);
+      return qualifiedCv;
+    } catch (modelError) {
+      console.warn(`Error calling Gemini model ${modelName}:`, modelError);
+    }
   }
+
+  console.warn('All Gemini AI endpoints failed or quota exceeded. Using deterministic fallback parser.');
+  return ruleBasedFallbackExtract(rawCvText);
 }
