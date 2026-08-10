@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Plus, Building, MapPin, Phone, Globe, Palette, Settings2 } from 'lucide-react';
+import { CheckCircle2, Plus, Building, MapPin, Phone, Globe, Palette, Settings2, Database } from 'lucide-react';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
 import { CompanyTemplateConfig } from '@/types/cv';
-import { getStoredTemplateHistory, saveTemplateToHistory } from '@/lib/templates/templateManager';
+import { fetchTemplatesFromPgDatabase, saveTemplateToHistory } from '@/lib/templates/templateManager';
 import { AddCompanyModal } from './AddCompanyModal';
 
 interface TemplateSelectorProps {
@@ -17,17 +17,19 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const [customTemplates, setCustomTemplates] = useState<CompanyTemplateConfig[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
   const [editingTemplate, setEditingTemplate] = useState<CompanyTemplateConfig | null>(null);
+  const [isPgConnected, setIsPgConnected] = useState<boolean>(false);
 
   useEffect(() => {
-    const history = getStoredTemplateHistory();
-    setCustomTemplates(history);
-
-    if (history.length > 0) {
-      const match = history.find((h) => h.id === selectedTemplateId);
-      if (match) {
-        onSelectTemplate(match);
+    fetchTemplatesFromPgDatabase().then((templates) => {
+      setCustomTemplates(templates);
+      setIsPgConnected(true);
+      if (templates.length > 0) {
+        const match = templates.find((h) => h.id === selectedTemplateId);
+        if (match) {
+          onSelectTemplate(match);
+        }
       }
-    }
+    });
   }, []);
 
   // Merge official templates and custom templates; custom templates override official ones if IDs match
@@ -60,12 +62,20 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 border-b border-slate-800 pb-4">
         <div>
-          <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>STEP 2 — Pilih & Kustomisasi Detail PT Perusahaan</span>
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
-          </h2>
-          <p className="text-xs text-slate-400">
-            Kustomisasi logo top-right, warna separator, alamat, website, dan nomor telepon untuk setiap PT.
+          <div className="flex items-center space-x-2">
+            <h2 className="text-lg font-bold text-white flex items-center gap-2">
+              <span>STEP 2 — Pilih & Kustomisasi Detail PT Perusahaan</span>
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            </h2>
+            {isPgConnected && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <Database className="w-3 h-3" />
+                <span>PostgreSQL Local Active</span>
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-400 mt-1">
+            Data PT, logo top-right, warna separator, &amp; footer tersimpan permanen di database PostgreSQL <strong>aigencv_db</strong>.
           </p>
         </div>
 

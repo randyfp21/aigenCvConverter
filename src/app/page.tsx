@@ -9,7 +9,7 @@ import { LanguageSelector } from '@/components/language/LanguageSelector';
 import { ReviewModal, AiStatusInfo } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
-import { getStoredTemplateHistory } from '@/lib/templates/templateManager';
+import { fetchTemplatesFromPgDatabase } from '@/lib/templates/templateManager';
 import {
   CanonicalCV,
   CompanyTemplateConfig,
@@ -17,7 +17,7 @@ import {
   FinalValidationReport,
   TargetLanguage,
 } from '@/types/cv';
-import { ArrowRight, Sparkles, ShieldCheck, CheckCircle2 } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, CheckCircle2, Database } from 'lucide-react';
 
 export default function Home() {
   const [currentStep, setCurrentStep] = useState<number>(1);
@@ -42,17 +42,18 @@ export default function Home() {
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
 
-  // Sync selectedTemplateConfig with LocalStorage history on client mount
+  // Sync selectedTemplateConfig with PostgreSQL database on client mount
   useEffect(() => {
-    const history = getStoredTemplateHistory();
-    if (history.length > 0) {
-      const activeMatch = history.find((h) => h.id === selectedTemplateConfig.id);
-      if (activeMatch) {
-        setSelectedTemplateConfig(activeMatch);
-      } else {
-        setSelectedTemplateConfig(history[0]);
+    fetchTemplatesFromPgDatabase().then((history) => {
+      if (history.length > 0) {
+        const activeMatch = history.find((h) => h.id === selectedTemplateConfig.id);
+        if (activeMatch) {
+          setSelectedTemplateConfig(activeMatch);
+        } else {
+          setSelectedTemplateConfig(history[0]);
+        }
       }
-    }
+    });
   }, []);
 
   const handleFileSelect = (file: File | null) => {
@@ -147,25 +148,25 @@ export default function Home() {
       <Navbar />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-        {/* Banner Auto Allow Directive */}
+        {/* Banner Auto Allow & PostgreSQL Active */}
         <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
-              AI
+              <Database className="w-4 h-4" />
             </div>
             <div>
               <p className="text-xs font-bold text-emerald-300">
-                Mode Gemini AI & Profil PT Presisi Aktif
+                Mode PostgreSQL Database Local &amp; Gemini AI Aktif
               </p>
               <p className="text-[11px] text-emerald-400/80">
-                Data PT ({selectedTemplateConfig.company_name}: Logo, Separator {selectedTemplateConfig.theme?.separator_color || selectedTemplateConfig.theme?.secondary_color}, Footer: {selectedTemplateConfig.company_address || 'Jakarta'}) 100% tersinkronisasi.
+                Database local PostgreSQL <strong>aigencv_db</strong> menyimpan seluruh profil PT, logo, warna separator, &amp; data footer secara permanen.
               </p>
             </div>
           </div>
 
           <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
             <CheckCircle2 className="w-3.5 h-3.5" />
-            <span>Ready</span>
+            <span>PostgreSQL Active</span>
           </span>
         </div>
 

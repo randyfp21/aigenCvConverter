@@ -61,11 +61,33 @@ export function saveTemplateToHistory(template: CompanyTemplateConfig): CompanyT
     const history = getStoredTemplateHistory();
     const updated = [template, ...history.filter((t) => t.id !== template.id)];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+
+    // Async save to PostgreSQL database
+    fetch('/api/templates', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(template),
+    }).catch((err) => console.warn('Failed to sync template to PostgreSQL API:', err));
+
     return updated;
   } catch (e) {
     console.error('Failed to save template to history:', e);
     return [];
   }
+}
+
+export async function fetchTemplatesFromPgDatabase(): Promise<CompanyTemplateConfig[]> {
+  try {
+    const res = await fetch('/api/templates');
+    const data = await res.json();
+    if (res.ok && data.success && Array.isArray(data.templates)) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.templates));
+      return data.templates;
+    }
+  } catch (e) {
+    console.warn('Failed to fetch templates from PostgreSQL API. Using LocalStorage fallback:', e);
+  }
+  return getStoredTemplateHistory();
 }
 
 export function createTemplateFromUploadedFile(
