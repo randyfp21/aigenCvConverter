@@ -40,19 +40,19 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   const portfolioLink = candidateCv.personal_information.portfolio_url || candidateCv.personal_information.website || candidateCv.personal_information.linkedin || '';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-2xl">
-      <div className="bg-white/90 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto backdrop-blur-3xl text-slate-900 dark:text-slate-100">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-3xl">
+      <div className="bg-white/60 dark:bg-slate-950/80 border border-white/60 dark:border-white/10 rounded-3xl max-w-4xl w-full p-6 sm:p-8 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto backdrop-blur-3xl text-slate-900 dark:text-slate-100">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4 gap-4">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between border-b border-white/40 dark:border-white/10 pb-4 gap-4">
           <div>
             <div className="flex items-center space-x-2">
               <h2 className="text-lg font-extrabold text-slate-900 dark:text-white">Konfirmasi Hasil Analisis CV Gemini AI</h2>
-              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 text-blue-600 dark:text-sky-300 border border-blue-500/20 flex items-center gap-1">
-                <Sparkles className="w-3 h-3" />
+              <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-blue-500/10 dark:bg-white/10 text-blue-600 dark:text-sky-300 border border-blue-500/20 dark:border-white/20 backdrop-blur-md flex items-center gap-1">
+                <Sparkles className="w-3 h-3 text-sky-400" />
                 <span>Model: {aiStatus?.modelUsed || 'gemini-3-flash-preview'}</span>
               </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               Tinjau kualifikasi kandidat, <strong>Link Portfolio</strong>, &amp; <strong>Pengalaman Proyek</strong> sebelum dicetak ke template PT <strong>{template.company_name}</strong>.
             </p>
           </div>
@@ -61,7 +61,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             <button
               type="button"
               onClick={() => setShowLogs(!showLogs)}
-              className="px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 flex items-center gap-1.5 shadow-sm"
+              className="px-3.5 py-1.5 rounded-2xl text-xs font-bold text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-white/60 dark:border-white/10 flex items-center gap-1.5 shadow-sm backdrop-blur-md"
             >
               <Terminal className="w-3.5 h-3.5 text-blue-500" />
               <span>{showLogs ? 'Sembunyikan Log Progress' : 'Lihat Progress Log AI'}</span>
@@ -69,7 +69,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+              className="p-2 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/10 transition-all backdrop-blur-md"
             >
               <X className="w-5 h-5" />
             </button>
@@ -78,7 +78,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
         {/* Diagnostic Banner if Quota Limit Hit or Fallback Used */}
         {aiStatus?.isFallback && (
-          <div className="p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs flex items-start gap-2.5">
+          <div className="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-800 dark:text-amber-300 text-xs flex items-start gap-2.5 backdrop-blur-xl">
             <AlertTriangle className="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" />
             <div>
               <p className="font-bold">Perhatian Status Kuota API Gemini AI:</p>
@@ -91,7 +91,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
         {/* Real-time Progress Log Section */}
         {showLogs && aiStatus?.statusLog && (
-          <div className="bg-slate-950 p-4 rounded-2xl border border-slate-800 font-mono text-[11px] space-y-1.5 text-slate-300 max-h-40 overflow-y-auto shadow-inner">
+          <div className="bg-slate-950/80 p-4 rounded-2xl border border-white/10 font-mono text-[11px] space-y-1.5 text-slate-300 max-h-40 overflow-y-auto shadow-inner backdrop-blur-2xl">
             <p className="text-[10px] uppercase tracking-wider font-bold text-sky-400 mb-2 flex items-center gap-1">
               <Terminal className="w-3.5 h-3.5" />
               <span>Catatan Status &amp; Diagnosa Proses Gemini AI:</span>
@@ -108,7 +108,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         )}
 
         {/* Privacy Safeguard Notice Banner */}
-        <div className="p-3.5 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-700 dark:text-blue-300 text-xs flex items-start gap-2.5">
+        <div className="p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 text-blue-800 dark:text-blue-300 text-xs flex items-start gap-2.5 backdrop-blur-xl">
           <ShieldAlert className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Informasi Kontak vs. Link Portfolio Kandidat:</p>
@@ -122,8 +122,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Left Column: Candidate Overview */}
           <div className="space-y-4">
-            <div className="bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 space-y-3 text-xs">
-              <h3 className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-slate-200 dark:border-slate-800 pb-2">
+            <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 space-y-3 text-xs backdrop-blur-2xl">
+              <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5 border-b border-white/40 dark:border-white/10 pb-2">
                 <User className="w-4 h-4 text-blue-500" />
                 <span>Profil &amp; Portfolio Kandidat</span>
               </h3>
@@ -142,7 +142,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                       },
                     })
                   }
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-900 dark:text-white font-bold shadow-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 text-slate-900 dark:text-white font-bold shadow-sm backdrop-blur-md"
                 />
               </div>
 
@@ -152,14 +152,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   type="text"
                   value={candidateCv.role}
                   onChange={(e) => setCandidateCv({ ...candidateCv, role: e.target.value })}
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-blue-600 dark:text-sky-400 font-bold shadow-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 text-blue-600 dark:text-sky-400 font-bold shadow-sm backdrop-blur-md"
                 />
               </div>
 
               <div>
                 <label className="text-slate-500 text-[10px] block mb-0.5">Senioritas &amp; Lama Pengalaman &#123;years_of_experience&#125;</label>
-                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 font-bold text-xs">
-                  <Clock className="w-3.5 h-3.5" />
+                <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 font-bold text-xs backdrop-blur-md">
+                  <Clock className="w-3.5 h-3.5 text-emerald-500" />
                   <span>{candidateCv.years_of_experience}</span>
                 </div>
               </div>
@@ -184,24 +184,24 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     })
                   }
                   placeholder="https://github.com/username atau portfolio"
-                  className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-sky-600 dark:text-sky-300 font-mono text-[11px] shadow-sm"
+                  className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 text-sky-600 dark:text-sky-300 font-mono text-[11px] shadow-sm backdrop-blur-md"
                 />
               </div>
 
-              <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-[10px] text-slate-500 dark:text-slate-400 space-y-1">
+              <div className="p-2.5 rounded-xl bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 text-[10px] text-slate-600 dark:text-slate-400 space-y-1 backdrop-blur-md">
                 <p className="flex items-center gap-1">
                   <EyeOff className="w-3 h-3 text-amber-500" />
-                  <span>Email Pribadi: <strong className="text-slate-400">[Disembunyikan]</strong></span>
+                  <span>Email Pribadi: <strong className="text-slate-500 dark:text-slate-400">[Disembunyikan]</strong></span>
                 </p>
                 <p className="flex items-center gap-1">
                   <EyeOff className="w-3 h-3 text-amber-500" />
-                  <span>No. HP Pribadi: <strong className="text-slate-400">[Disembunyikan]</strong></span>
+                  <span>No. HP Pribadi: <strong className="text-slate-500 dark:text-slate-400">[Disembunyikan]</strong></span>
                 </p>
               </div>
             </div>
 
-            <div className="bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs">
-              <h3 className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 text-xs backdrop-blur-2xl">
+              <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Sparkles className="w-3.5 h-3.5 text-blue-500" />
                 <span>Summary About Me &#123;about_me&#125;</span>
               </h3>
@@ -215,12 +215,12 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                     summary: e.target.value,
                   })
                 }
-                className="w-full px-3 py-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-800 text-slate-800 dark:text-slate-300 text-xs leading-relaxed focus:outline-none focus:border-blue-500 shadow-sm"
+                className="w-full px-3 py-2 rounded-xl bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 text-slate-800 dark:text-slate-200 text-xs leading-relaxed focus:outline-none focus:border-blue-500 shadow-sm backdrop-blur-md"
               />
             </div>
 
-            <div className="bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs">
-              <h3 className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 text-xs backdrop-blur-2xl">
+              <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Code2 className="w-4 h-4 text-blue-500" />
                 <span>Kualifikasi Teknikal &#123;technical_qualification&#125;</span>
               </h3>
@@ -228,7 +228,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                 {candidateCv.technical_qualifications.map((tech, idx) => (
                   <span
                     key={idx}
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-blue-500/10 text-blue-700 dark:text-blue-300 border border-blue-500/20"
+                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-blue-500/10 dark:bg-white/10 text-blue-700 dark:text-sky-300 border border-blue-500/20 dark:border-white/20 backdrop-blur-md"
                   >
                     ✓ {tech}
                   </span>
@@ -239,8 +239,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
           {/* Right Column: Work Experience, Project History & Education */}
           <div className="md:col-span-2 space-y-4">
-            <div className="bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs">
-              <h3 className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-2">
+            <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 text-xs backdrop-blur-2xl">
+              <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-3 flex items-center justify-between border-b border-white/40 dark:border-white/10 pb-2">
                 <div className="flex items-center gap-1.5">
                   <Briefcase className="w-4 h-4 text-blue-500" />
                   <span>Pengalaman Kerja &amp; Proyek &#123;professional_experience&#125; ({candidateCv.work_experience.length})</span>
@@ -273,7 +273,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
 
                     {/* Extracted Projects per Employment Record */}
                     {job.projects && job.projects.length > 0 && (
-                      <div className="mt-2.5 p-3 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 space-y-1.5 shadow-sm">
+                      <div className="mt-2.5 p-3 rounded-2xl bg-white/60 dark:bg-white/5 border border-white/60 dark:border-white/10 space-y-1.5 backdrop-blur-md shadow-sm">
                         <p className="font-bold text-emerald-600 dark:text-emerald-400 text-[10px] flex items-center gap-1">
                           <FolderGit2 className="w-3 h-3" />
                           <span>Detail Pengalaman Proyek ({job.projects.length}):</span>
@@ -288,7 +288,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                                 </a>
                               )}
                             </p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">{proj.description}</p>
+                            <p className="text-[10px] text-slate-600 dark:text-slate-400">{proj.description}</p>
                             {proj.technologies.length > 0 && (
                               <p className="text-[9.5px] text-emerald-600 dark:text-emerald-300 font-mono">Tech: {proj.technologies.join(', ')}</p>
                             )}
@@ -302,8 +302,8 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs">
-                <h3 className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 text-xs backdrop-blur-2xl">
+                <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <Award className="w-4 h-4 text-emerald-500" />
                   <span>Sertifikasi &#123;certifications&#125;</span>
                 </h3>
@@ -311,14 +311,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   {candidateCv.certifications.map((cert, cIdx) => (
                     <li key={cert.id || cIdx} className="text-[11px] text-slate-700 dark:text-slate-300">
                       <p className="font-bold text-slate-900 dark:text-white">• {cert.name}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-2">{cert.issuer} {cert.date ? `(${cert.date})` : ''}</p>
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400 pl-2">{cert.issuer} {cert.date ? `(${cert.date})` : ''}</p>
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="bg-slate-50/80 dark:bg-slate-950/60 border border-slate-200 dark:border-slate-800 rounded-2xl p-4 text-xs">
-                <h3 className="font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+              <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 text-xs backdrop-blur-2xl">
+                <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                   <GraduationCap className="w-4 h-4 text-purple-500" />
                   <span>Pendidikan &#123;education&#125;</span>
                 </h3>
@@ -326,7 +326,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
                   {candidateCv.education.map((edu, eIdx) => (
                     <li key={edu.id || eIdx} className="text-[11px] text-slate-700 dark:text-slate-300">
                       <p className="font-bold text-slate-900 dark:text-white">• {edu.institution}</p>
-                      <p className="text-[10px] text-slate-500 dark:text-slate-400 pl-2">{edu.degree} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}</p>
+                      <p className="text-[10px] text-slate-600 dark:text-slate-400 pl-2">{edu.degree} {edu.field_of_study ? `in ${edu.field_of_study}` : ''}</p>
                     </li>
                   ))}
                 </ul>
@@ -336,11 +336,11 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-between pt-4 border-t border-white/40 dark:border-white/10">
           <button
             type="button"
             onClick={onClose}
-            className="px-5 py-2.5 rounded-2xl font-bold text-xs text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all"
+            className="px-5 py-2.5 rounded-2xl font-bold text-xs text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-white/40 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-white/60 dark:border-white/10 transition-all backdrop-blur-md"
           >
             Batal / Ubah Pilihan
           </button>
@@ -348,7 +348,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
           <button
             type="button"
             onClick={handleConfirm}
-            className="px-7 py-3 rounded-2xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-xl shadow-blue-500/25 flex items-center space-x-2 transition-all transform active:scale-95"
+            className="px-7 py-3 rounded-2xl font-black text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-xl shadow-blue-500/25 flex items-center space-x-2 transition-all transform active:scale-95 backdrop-blur-md"
           >
             <CheckCircle2 className="w-4 h-4 text-white" />
             <span>Konfirmasi &amp; Hasilkan CV Perusahaan</span>

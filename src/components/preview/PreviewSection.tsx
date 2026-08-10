@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { CompanyTemplateConfig, FinalValidationReport, TargetLanguage } from '@/types/cv';
-import { Download, FileText, CheckCircle2, ShieldCheck, RefreshCw, Eye, ArrowLeft, ExternalLink, Sparkles } from 'lucide-react';
+import { Download, FileText, CheckCircle2, ShieldCheck, RefreshCw, Eye } from 'lucide-react';
 
 interface PreviewSectionProps {
   template: CompanyTemplateConfig;
@@ -28,9 +28,9 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   const docxFilename = `${cleanName}_${template.code}_Standardized_CV.docx`;
 
   return (
-    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 transition-all duration-500 bg-white/70 dark:bg-slate-900/60 border border-slate-200/80 dark:border-slate-800/80 backdrop-blur-3xl shadow-2xl dark:shadow-black/60 space-y-6">
+    <div className="relative overflow-hidden rounded-3xl p-6 sm:p-8 transition-all duration-500 bg-white/40 dark:bg-slate-950/40 border border-white/60 dark:border-white/10 backdrop-blur-3xl shadow-2xl space-y-6">
       {/* Top Header Row */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-slate-200/60 dark:border-slate-800/60 pb-5">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-white/40 dark:border-white/10 pb-5">
         <div className="flex items-center space-x-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-blue-600 to-sky-400 text-white flex items-center justify-center font-black shadow-lg shadow-blue-500/30">
             <CheckCircle2 className="w-6 h-6" />
@@ -42,7 +42,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
                 Dokumen CV Perusahaan Siap Unduh
               </h2>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">
               Format resmi PT <strong>{template.company_name}</strong> • Bahasa: <strong>{language.toUpperCase()}</strong>
             </p>
           </div>
@@ -52,7 +52,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
           <button
             type="button"
             onClick={onConvertAgain}
-            className="px-4 py-2.5 rounded-2xl font-bold text-xs text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 border border-slate-300 dark:border-slate-700 transition-all flex items-center space-x-1.5 shadow-sm"
+            className="px-4 py-2.5 rounded-2xl font-bold text-xs text-slate-700 dark:text-slate-200 bg-white/40 dark:bg-white/10 hover:bg-white/70 dark:hover:bg-white/20 border border-white/60 dark:border-white/10 transition-all flex items-center space-x-1.5 shadow-sm backdrop-blur-md"
           >
             <RefreshCw className="w-4 h-4 text-blue-500" />
             <span>Konversi CV Lain</span>
@@ -66,10 +66,10 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
         <a
           href={pdfBase64Url}
           download={pdfFilename}
-          className="group relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] flex items-center justify-between"
+          className="group relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-500/25 transition-all duration-300 hover:scale-[1.02] flex items-center justify-between backdrop-blur-md"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -85,10 +85,10 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
         <a
           href={docxBase64Url}
           download={docxFilename}
-          className="group relative overflow-hidden rounded-2xl p-5 bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-xl shadow-sky-500/25 transition-all duration-300 hover:scale-[1.02] flex items-center justify-between"
+          className="group relative overflow-hidden rounded-3xl p-5 bg-gradient-to-r from-sky-600 to-blue-700 text-white shadow-xl shadow-sky-500/25 transition-all duration-300 hover:scale-[1.02] flex items-center justify-between backdrop-blur-md"
         >
           <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center">
+            <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center">
               <FileText className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -102,14 +102,14 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
       </div>
 
       {/* Tabs Row */}
-      <div className="flex items-center space-x-2 border-b border-slate-200 dark:border-slate-800 pb-2">
+      <div className="flex items-center space-x-2 border-b border-white/40 dark:border-white/10 pb-2">
         <button
           type="button"
           onClick={() => setPreviewTab('pdf')}
-          className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center space-x-1.5 ${
+          className={`px-4 py-2 rounded-2xl font-bold text-xs transition-all flex items-center space-x-1.5 backdrop-blur-md ${
             previewTab === 'pdf'
               ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-              : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/10'
           }`}
         >
           <Eye className="w-4 h-4" />
@@ -120,10 +120,10 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
           <button
             type="button"
             onClick={() => setPreviewTab('report')}
-            className={`px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center space-x-1.5 ${
+            className={`px-4 py-2 rounded-2xl font-bold text-xs transition-all flex items-center space-x-1.5 backdrop-blur-md ${
               previewTab === 'report'
                 ? 'bg-emerald-600 text-white shadow-md shadow-emerald-500/20'
-                : 'text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-white/40 dark:hover:bg-white/10'
             }`}
           >
             <ShieldCheck className="w-4 h-4" />
@@ -134,11 +134,11 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
 
       {/* PDF Document Preview Viewer */}
       {previewTab === 'pdf' && (
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-950 p-2 h-[650px] shadow-inner overflow-hidden">
+        <div className="rounded-3xl border border-white/60 dark:border-white/10 bg-slate-950/80 p-2 h-[650px] shadow-inner overflow-hidden backdrop-blur-2xl">
           <iframe
             src={pdfBase64Url}
             title="PDF Document Preview"
-            className="w-full h-full rounded-xl bg-white"
+            className="w-full h-full rounded-2xl bg-white"
           />
         </div>
       )}
@@ -146,7 +146,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
       {/* Validation Audit Report Viewer */}
       {previewTab === 'report' && validationReport && (
         <div className="space-y-4 text-xs font-mono">
-          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300">
+          <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-800 dark:text-emerald-300 backdrop-blur-xl">
             <p className="font-extrabold flex items-center gap-2 text-sm">
               <CheckCircle2 className="w-5 h-5 text-emerald-500" />
               <span>Pipeline Verification Status: {validationReport.isValid ? '100% PASSED' : 'ATTENTION REQUIRED'}</span>
@@ -156,7 +156,7 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
             </p>
           </div>
 
-          <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 text-slate-300 space-y-2">
+          <div className="bg-slate-950/80 p-5 rounded-2xl border border-white/10 text-slate-300 space-y-2 backdrop-blur-2xl">
             <p className="text-sky-400 font-bold uppercase text-[10px] tracking-wider mb-2">
               AUDIT DATA-LOSS CHECK METRICS:
             </p>
