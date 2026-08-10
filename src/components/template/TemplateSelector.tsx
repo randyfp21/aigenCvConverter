@@ -19,7 +19,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const [editingTemplate, setEditingTemplate] = useState<CompanyTemplateConfig | null>(null);
 
   useEffect(() => {
-    setCustomTemplates(getStoredTemplateHistory());
+    const history = getStoredTemplateHistory();
+    setCustomTemplates(history);
+
+    if (history.length > 0) {
+      const match = history.find((h) => h.id === selectedTemplateId);
+      if (match) {
+        onSelectTemplate(match);
+      }
+    }
   }, []);
 
   // Merge official templates and custom templates; custom templates override official ones if IDs match
@@ -113,11 +121,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   </div>
 
                   {/* Top-Right Company Logo */}
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-slate-900 border border-slate-700 shadow-md">
-                    <div
-                      className="w-full h-full"
-                      dangerouslySetInnerHTML={{ __html: tmpl.logo_svg }}
-                    />
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-slate-900 border border-slate-700 shadow-md overflow-hidden">
+                    {tmpl.logo_url && tmpl.logo_url.startsWith('data:image') ? (
+                      <img src={tmpl.logo_url} alt={tmpl.company_name} className="w-full h-full object-contain" />
+                    ) : (
+                      <div
+                        className="w-full h-full flex items-center justify-center"
+                        dangerouslySetInnerHTML={{ __html: tmpl.logo_svg }}
+                      />
+                    )}
                   </div>
                 </div>
 

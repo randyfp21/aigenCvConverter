@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Navbar } from '@/components/layout/Navbar';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { TemplateSelector } from '@/components/template/TemplateSelector';
@@ -9,6 +9,7 @@ import { LanguageSelector } from '@/components/language/LanguageSelector';
 import { ReviewModal, AiStatusInfo } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
+import { getStoredTemplateHistory } from '@/lib/templates/templateManager';
 import {
   CanonicalCV,
   CompanyTemplateConfig,
@@ -40,6 +41,19 @@ export default function Home() {
   const [outputDocxUrl, setOutputDocxUrl] = useState<string | null>(null);
 
   const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
+
+  // Sync selectedTemplateConfig with LocalStorage history on client mount
+  useEffect(() => {
+    const history = getStoredTemplateHistory();
+    if (history.length > 0) {
+      const activeMatch = history.find((h) => h.id === selectedTemplateConfig.id);
+      if (activeMatch) {
+        setSelectedTemplateConfig(activeMatch);
+      } else {
+        setSelectedTemplateConfig(history[0]);
+      }
+    }
+  }, []);
 
   const handleFileSelect = (file: File | null) => {
     if (!file) {
@@ -144,7 +158,7 @@ export default function Home() {
                 Mode Gemini AI & Profil PT Presisi Aktif
               </p>
               <p className="text-[11px] text-emerald-400/80">
-                Progress real-time & diagnosa batas kuota Gemini AI aktif. Logo, warna separator, & data footer diambil dari halaman awal.
+                Data PT ({selectedTemplateConfig.company_name}: Logo, Separator {selectedTemplateConfig.theme?.separator_color || selectedTemplateConfig.theme?.secondary_color}, Footer: {selectedTemplateConfig.company_address || 'Jakarta'}) 100% tersinkronisasi.
               </p>
             </div>
           </div>
@@ -216,7 +230,7 @@ export default function Home() {
                   </div>
                   <p className="text-[11px] text-slate-400">
                     Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
-                    {selectedTemplateConfig.company_name} ({selectedTemplateConfig.code})
+                    <strong className="text-white">{selectedTemplateConfig.company_name}</strong> ({selectedTemplateConfig.code})
                   </p>
                   {isConverting && conversionProgressStep && (
                     <p className="text-[10px] font-semibold text-blue-400 animate-pulse mt-0.5">
