@@ -1,7 +1,7 @@
 import PizZip from 'pizzip';
 import Docxtemplater from 'docxtemplater';
 import { CanonicalCV, CompanyTemplateConfig, TargetLanguage } from '@/types/cv';
-import { generateDocxBuffer as generateFallbackDocx } from './docxRenderer';
+import { createOfficialCompanyDocxTemplate } from '@/lib/templates/defaultDocxTemplates';
 
 export async function renderDocxFromTemplate(
   cv: CanonicalCV,
@@ -9,20 +9,23 @@ export async function renderDocxFromTemplate(
   lang: TargetLanguage,
   templateDocxBuffer?: Buffer
 ): Promise<Buffer> {
-  // If no custom target DOCX template buffer is uploaded or it's not a valid zip/docx file, fallback to standard programmatic DOCX
-  if (!templateDocxBuffer || templateDocxBuffer.length < 100) {
-    return await generateFallbackDocx(cv, template, lang);
-  }
+  let docxBaseBuffer: Buffer;
 
-  // Check DOCX magic header bytes PK\x03\x04 ('504b0304')
-  const isDocxZip = templateDocxBuffer.slice(0, 4).toString('hex') === '504b0304';
-  if (!isDocxZip) {
-    return await generateFallbackDocx(cv, template, lang);
+  // Check if templateDocxBuffer is a valid DOCX zip file (starts with 504b0304 PK header)
+  if (templateDocxBuffer && templateDocxBuffer.length >= 100 && templateDocxBuffer.slice(0, 4).toString('hex') === '504b0304') {
+    docxBaseBuffer = templateDocxBuffer;
+  } else {
+    // Generate official company DOCX template containing exact placeholders with logo & styling
+    docxBaseBuffer = await createOfficialCompanyDocxTemplate(
+      template.company_name,
+      template.code,
+      template.theme.primary_color || '#0F172A'
+    );
   }
 
   try {
     // 1. Load target DOCX template buffer preserving 100% of headers, footers, logos, tables, fonts & colors
-    const zip = new PizZip(templateDocxBuffer);
+    const zip = new PizZip(docxBaseBuffer);
 
     // 2. Instantiate Docxtemplater with linebreaks and nullgetter fallback
     const doc = new Docxtemplater(zip, {
@@ -197,7 +200,26 @@ export async function renderDocxFromTemplate(
 
     return outputBuffer;
   } catch (error) {
-    console.error('Docxtemplater Error, falling back to standard renderer:', error);
-    return await generateFallbackDocx(cv, template, lang);
+    console.error('Docxtemplater Error, falling back to official company template:', error);
+    const fallbackTemplate = await createOfficialCompanyDocxTemplate(
+      template.company_name,
+      template.code,
+      template.theme.primary_color || '#0F172A'
+    );
+
+    const zip = new PizZip(fallbackTemplate);
+    const doc = new Docxtemplater(zip, { paragraphLoop: true, linebreaks: true, nullGetter: () => '' });
+    doc.render({
+      Nama_lengkap: cv.personal_information.full_name || 'Candidate',
+      role: cv.role || 'Candidate',
+      about_me: cv.about_me || cv.summary || '',
+      years_of_experience: cv.years_of_experience || 'Junior (1 Year)',
+      professional_experience: cv.work_experience.map((j) => `${j.position} at ${j.company}\n${j.responsibilities.map((r) => `• ${r}`).join('\n')}`).join('\n\n'),
+      technical_qualification: cv.technical_qualifications.map((t) => `• ${t}`).join('\n'),
+      education: cv.education.map((e) => `• ${e.institution}`).join('\n'),
+      certifications: cv.certifications.map((c) => `• ${c.name}`).join('\n'),
+    });
+
+    return doc.getZip().generate({ type: 'nodebuffer', compression: 'DEFLATE' });
   }
 }
