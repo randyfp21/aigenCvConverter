@@ -15,6 +15,20 @@ interface TemplateSelectorProps {
   onTargetTemplateFileSelect?: (file: File | null) => void;
 }
 
+// Converts Base64 data URI string back to a File object
+function base64ToFile(base64Data: string, filename: string): File {
+  const arr = base64Data.split(',');
+  const mimeMatch = arr[0].match(/:(.*?);/);
+  const mime = mimeMatch ? mimeMatch[1] : 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  const bstr = atob(arr[1] || arr[0]);
+  let n = bstr.length;
+  const u8arr = new Uint8Array(n);
+  while (n--) {
+    u8arr[n] = bstr.charCodeAt(n);
+  }
+  return new File([u8arr], filename, { type: mime });
+}
+
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplateId,
   onSelectTemplate,
@@ -36,32 +50,42 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   const handleGeneralFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0) {
       const file = e.target.files[0];
-      const newTemplate = createTemplateFromUploadedFile(file.name);
-      setHistoryTemplates(getStoredTemplateHistory());
-      setPdfMap(getStoredCompanyPdfMap());
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        const newTemplate = createTemplateFromUploadedFile(file.name, undefined, base64);
+        setHistoryTemplates(getStoredTemplateHistory());
+        setPdfMap(getStoredCompanyPdfMap());
 
-      if (onTargetTemplateFileSelect) {
-        onTargetTemplateFileSelect(file);
-      }
+        if (onTargetTemplateFileSelect) {
+          onTargetTemplateFileSelect(file);
+        }
 
-      onSelectTemplate(newTemplate);
-      setActiveTab('history');
+        onSelectTemplate(newTemplate);
+        setActiveTab('history');
+      };
+      reader.readAsDataURL(file);
     }
   };
 
   const handleCompanyPdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files.length > 0 && uploadingForCompanyId) {
       const file = e.target.files[0];
-      const updatedTemplate = createTemplateFromUploadedFile(file.name, uploadingForCompanyId);
-      setHistoryTemplates(getStoredTemplateHistory());
-      setPdfMap(getStoredCompanyPdfMap());
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64 = reader.result as string;
+        const updatedTemplate = createTemplateFromUploadedFile(file.name, uploadingForCompanyId, base64);
+        setHistoryTemplates(getStoredTemplateHistory());
+        setPdfMap(getStoredCompanyPdfMap());
 
-      if (onTargetTemplateFileSelect) {
-        onTargetTemplateFileSelect(file);
-      }
+        if (onTargetTemplateFileSelect) {
+          onTargetTemplateFileSelect(file);
+        }
 
-      onSelectTemplate(updatedTemplate);
-      setUploadingForCompanyId(null);
+        onSelectTemplate(updatedTemplate);
+        setUploadingForCompanyId(null);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -71,20 +95,30 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
     companyFileInputRef.current?.click();
   };
 
+  const handleSelectCompanyCard = (tmpl: CompanyTemplateConfig) => {
+    onSelectTemplate(tmpl);
+
+    // If company has stored target file Base64, convert back to File and pass to parent
+    const stored = pdfMap[tmpl.id];
+    if (stored && stored.pdfBase64 && onTargetTemplateFileSelect) {
+      const fileObj = base64ToFile(stored.pdfBase64, stored.pdfFileName);
+      onTargetTemplateFileSelect(fileObj);
+    }
+  };
+
   return (
     <div className="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 backdrop-blur-md">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>STEP 2 — Select / Upload Target CV Template (DOCX / PDF)</span>
+            <span>STEP 2 — Select / Upload Target CV Template (DOCX)</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
           </h2>
           <p className="text-xs text-slate-400">
-            Upload your official target DOCX/PDF template file per company to map candidate data into your exact layout.
+            Upload your target DOCX template file to map candidate variables directly into your exact document layout.
           </p>
         </div>
 
-        {/* Tab switcher */}
         <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800 text-xs">
           <button
             type="button"
@@ -140,7 +174,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
             return (
               <div
                 key={tmpl.id}
-                onClick={() => onSelectTemplate(tmpl)}
+                onClick={() => handleSelectCompanyCard(tmpl)}
                 className={`relative border rounded-2xl p-5 cursor-pointer transition-all duration-300 flex flex-col justify-between ${
                   isSelected
                     ? 'bg-slate-800/90 border-blue-500 ring-2 ring-blue-500/20 shadow-xl shadow-blue-500/10'
@@ -166,16 +200,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   </h3>
                   <p className="text-[11px] text-slate-400 mb-3 line-clamp-2">{tmpl.tagline}</p>
 
-                  {/* Attachment Status */}
                   {pdfAttachment ? (
                     <div className="mb-4 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span className="truncate">Active Template File: {pdfAttachment.pdfFileName}</span>
+                      <span className="truncate">Target DOCX Loaded: {pdfAttachment.pdfFileName}</span>
                     </div>
                   ) : (
                     <div className="mb-4 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-[10px] text-slate-400 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                      <span>Ready to receive target DOCX/PDF</span>
+                      <span>Ready to receive target DOCX</span>
                     </div>
                   )}
                 </div>
@@ -187,7 +220,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     className="w-full py-2 rounded-lg text-[11px] font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center space-x-1.5 transition-all"
                   >
                     <FileUp className="w-3.5 h-3.5" />
-                    <span>Upload Target DOCX / PDF</span>
+                    <span>Upload Target DOCX</span>
                   </button>
 
                   <button
@@ -222,7 +255,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               <History className="w-8 h-8 text-slate-600 mx-auto mb-2" />
               <p className="font-semibold text-slate-300 mb-1">No Custom Uploaded History Yet</p>
               <p className="text-slate-500 mb-4">
-                Upload target template DOCX/PDF files for your PTs above to store them in your history registry.
+                Upload target template DOCX files for your PTs above to store them in your history registry.
               </p>
               <button
                 type="button"
@@ -230,7 +263,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 flex items-center justify-center mx-auto space-x-2"
               >
                 <FileUp className="w-4 h-4" />
-                <span>Upload Target DOCX / PDF Template</span>
+                <span>Upload Target DOCX Template</span>
               </button>
             </div>
           ) : (
@@ -241,7 +274,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 return (
                   <div
                     key={tmpl.id}
-                    onClick={() => onSelectTemplate(tmpl)}
+                    onClick={() => handleSelectCompanyCard(tmpl)}
                     className={`relative border rounded-2xl p-5 cursor-pointer transition-all duration-300 flex flex-col justify-between ${
                       isSelected
                         ? 'bg-slate-800/90 border-blue-500 ring-2 ring-blue-500/20 shadow-xl shadow-blue-500/10'

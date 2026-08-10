@@ -2,6 +2,7 @@ import { CompanyTemplateConfig } from '@/types/cv';
 import { COMPANY_TEMPLATES } from './companies';
 
 const STORAGE_KEY = 'aigencv_template_history_v2';
+const PDF_MAP_KEY = 'aigencv_company_pdfs_v2';
 
 export interface UploadedCompanyPdfMap {
   [companyId: string]: {
@@ -14,7 +15,7 @@ export interface UploadedCompanyPdfMap {
 export function getStoredCompanyPdfMap(): UploadedCompanyPdfMap {
   if (typeof window === 'undefined') return {};
   try {
-    const raw = localStorage.getItem('aigencv_company_pdfs');
+    const raw = localStorage.getItem(PDF_MAP_KEY);
     if (!raw) return {};
     return JSON.parse(raw);
   } catch (e) {
@@ -23,19 +24,20 @@ export function getStoredCompanyPdfMap(): UploadedCompanyPdfMap {
   }
 }
 
-export function attachPdfToCompanyTemplate(companyId: string, pdfFileName: string): void {
+export function attachPdfToCompanyTemplate(companyId: string, pdfFileName: string, pdfBase64?: string): void {
   if (typeof window === 'undefined') return;
   try {
     const map = getStoredCompanyPdfMap();
     map[companyId] = {
       pdfFileName,
+      pdfBase64,
       uploadedAt: new Date().toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',
         year: 'numeric',
       }),
     };
-    localStorage.setItem('aigencv_company_pdfs', JSON.stringify(map));
+    localStorage.setItem(PDF_MAP_KEY, JSON.stringify(map));
   } catch (e) {
     console.error('Failed to attach pdf to company template:', e);
   }
@@ -68,7 +70,8 @@ export function saveTemplateToHistory(template: CompanyTemplateConfig): CompanyT
 
 export function createTemplateFromUploadedFile(
   fileName: string,
-  targetCompanyId?: string
+  targetCompanyId?: string,
+  base64Data?: string
 ): CompanyTemplateConfig {
   const companyName = targetCompanyId
     ? COMPANY_TEMPLATES.find((t) => t.id === targetCompanyId)?.company_name || fileName
@@ -137,7 +140,7 @@ export function createTemplateFromUploadedFile(
   };
 
   if (targetCompanyId) {
-    attachPdfToCompanyTemplate(targetCompanyId, fileName);
+    attachPdfToCompanyTemplate(targetCompanyId, fileName, base64Data);
   }
   saveTemplateToHistory(config);
   return config;
