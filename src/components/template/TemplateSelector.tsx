@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { CheckCircle2, Plus, Building, MapPin, Phone, Palette } from 'lucide-react';
+import { CheckCircle2, Plus, Building, MapPin, Phone, Globe, Palette, Settings2 } from 'lucide-react';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
 import { CompanyTemplateConfig } from '@/types/cv';
 import { getStoredTemplateHistory, saveTemplateToHistory } from '@/lib/templates/templateManager';
@@ -16,17 +16,36 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 }) => {
   const [customTemplates, setCustomTemplates] = useState<CompanyTemplateConfig[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState<boolean>(false);
+  const [editingTemplate, setEditingTemplate] = useState<CompanyTemplateConfig | null>(null);
 
   useEffect(() => {
     setCustomTemplates(getStoredTemplateHistory());
   }, []);
 
-  const allTemplates = [...COMPANY_TEMPLATES, ...customTemplates.filter((c) => !COMPANY_TEMPLATES.some((p) => p.id === c.id))];
+  // Merge official templates and custom templates; custom templates override official ones if IDs match
+  const allTemplates = [
+    ...COMPANY_TEMPLATES.map((official) => {
+      const customOverride = customTemplates.find((c) => c.id === official.id);
+      return customOverride || official;
+    }),
+    ...customTemplates.filter((c) => !COMPANY_TEMPLATES.some((p) => p.id === c.id)),
+  ];
 
-  const handleSaveNewCompany = (newTemplate: CompanyTemplateConfig) => {
-    const updated = saveTemplateToHistory(newTemplate);
+  const handleSaveCompany = (template: CompanyTemplateConfig) => {
+    const updated = saveTemplateToHistory(template);
     setCustomTemplates(updated);
-    onSelectTemplate(newTemplate);
+    onSelectTemplate(template);
+  };
+
+  const handleOpenEditModal = (tmpl: CompanyTemplateConfig, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingTemplate(tmpl);
+    setIsAddModalOpen(true);
+  };
+
+  const handleOpenAddModal = () => {
+    setEditingTemplate(null);
+    setIsAddModalOpen(true);
   };
 
   return (
@@ -34,17 +53,17 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 border-b border-slate-800 pb-4">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>STEP 2 — Pilih & Parameterize Template Perusahaan PT</span>
+            <span>STEP 2 — Pilih & Kustomisasi Detail PT Perusahaan</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
           </h2>
           <p className="text-xs text-slate-400">
-            Setiap PT disesuaikan dengan logo di pojok kanan atas, warna separator, serta alamat & nomor telepon di footer.
+            Kustomisasi logo top-right, warna separator, alamat, website, dan nomor telepon untuk setiap PT.
           </p>
         </div>
 
         <button
           type="button"
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={handleOpenAddModal}
           className="px-4 py-2.5 rounded-xl font-bold text-xs text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 shadow-lg shadow-blue-500/20 flex items-center space-x-1.5 transition-all transform active:scale-95"
         >
           <Plus className="w-4 h-4" />
@@ -75,11 +94,23 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               />
 
               <div>
-                {/* Header Row: Company Code & Top-Right Logo */}
+                {/* Header Row: Company Code, Edit Button & Top-Right Logo */}
                 <div className="flex items-start justify-between mb-3 pt-1">
-                  <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-800">
-                    {tmpl.code}
-                  </span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-slate-900 text-slate-300 border border-slate-800">
+                      {tmpl.code}
+                    </span>
+
+                    {/* Edit Detail Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => handleOpenEditModal(tmpl, e)}
+                      title="Edit Logo, Footer & Color Parameters"
+                      className="p-1 rounded-lg bg-slate-800 hover:bg-blue-600 text-slate-400 hover:text-white border border-slate-700 transition-all"
+                    >
+                      <Settings2 className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
 
                   {/* Top-Right Company Logo */}
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center p-1 bg-slate-900 border border-slate-700 shadow-md">
@@ -105,7 +136,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                 </div>
               </div>
 
-              {/* Footer Details (Address & Phone Parameterized per PT Card) */}
+              {/* Footer Details (Address, Website & Phone Parameterized per PT Card) */}
               <div className="space-y-3 mt-2">
                 <div className="bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 space-y-1 text-[10px] text-slate-400">
                   <p className="flex items-center gap-1.5 truncate">
@@ -113,28 +144,43 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     <span className="truncate">{tmpl.company_address || 'Jakarta, Indonesia'}</span>
                   </p>
                   <p className="flex items-center gap-1.5 truncate">
+                    <Globe className="w-3 h-3 text-sky-400 flex-shrink-0" />
+                    <span className="truncate">{tmpl.company_website || 'www.company.com'}</span>
+                  </p>
+                  <p className="flex items-center gap-1.5 truncate">
                     <Phone className="w-3 h-3 text-emerald-400 flex-shrink-0" />
                     <span className="truncate">{tmpl.company_phone || '+62 21 500 8000'}</span>
                   </p>
                 </div>
 
-                <button
-                  type="button"
-                  className={`w-full py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center space-x-1.5 ${
-                    isSelected
-                      ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
-                      : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
-                  }`}
-                >
-                  {isSelected ? (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-white" />
-                      <span>PT Dipilih</span>
-                    </>
-                  ) : (
-                    <span>Pilih PT Ini</span>
-                  )}
-                </button>
+                <div className="grid grid-cols-5 gap-2">
+                  <button
+                    type="button"
+                    onClick={(e) => handleOpenEditModal(tmpl, e)}
+                    className="col-span-2 py-2.5 rounded-xl font-semibold text-[11px] text-slate-300 bg-slate-800 hover:bg-slate-700 border border-slate-700 flex items-center justify-center space-x-1"
+                  >
+                    <Settings2 className="w-3.5 h-3.5 text-blue-400" />
+                    <span>Edit PT</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    className={`col-span-3 py-2.5 rounded-xl font-bold text-xs transition-all flex items-center justify-center space-x-1.5 ${
+                      isSelected
+                        ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-lg shadow-blue-500/20'
+                        : 'bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700'
+                    }`}
+                  >
+                    {isSelected ? (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-white" />
+                        <span>Dipilih</span>
+                      </>
+                    ) : (
+                      <span>Pilih PT</span>
+                    )}
+                  </button>
+                </div>
               </div>
             </div>
           );
@@ -142,8 +188,8 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
         {/* Add New PT Card Button */}
         <div
-          onClick={() => setIsAddModalOpen(true)}
-          className="border-2 border-dashed border-slate-800 hover:border-blue-500/50 bg-slate-950/20 hover:bg-slate-900/40 rounded-2xl p-6 cursor-pointer transition-all flex flex-col items-center justify-center text-center space-y-3 min-h-[220px]"
+          onClick={handleOpenAddModal}
+          className="border-2 border-dashed border-slate-800 hover:border-blue-500/50 bg-slate-950/20 hover:bg-slate-900/40 rounded-2xl p-6 cursor-pointer transition-all flex flex-col items-center justify-center text-center space-y-3 min-h-[240px]"
         >
           <div className="w-12 h-12 rounded-2xl bg-blue-600/10 border border-blue-500/20 text-blue-400 flex items-center justify-center">
             <Building className="w-6 h-6" />
@@ -151,7 +197,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
           <div>
             <h4 className="text-sm font-bold text-white">+ Tambah Perusahaan PT Baru</h4>
             <p className="text-[11px] text-slate-400 mt-1">
-              Customize nama, logo, warna separator, alamat, dan nomor telepon PT
+              Customize nama, logo, warna separator, alamat, website, dan telp PT
             </p>
           </div>
         </div>
@@ -159,8 +205,12 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
 
       <AddCompanyModal
         isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
-        onSave={handleSaveNewCompany}
+        initialData={editingTemplate}
+        onClose={() => {
+          setIsAddModalOpen(false);
+          setEditingTemplate(null);
+        }}
+        onSave={handleSaveCompany}
       />
     </div>
   );

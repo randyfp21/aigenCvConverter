@@ -11,7 +11,6 @@ export async function renderDocxFromTemplate(
 ): Promise<Buffer> {
   let docxBaseBuffer: Buffer;
 
-  // Check if templateDocxBuffer is a valid DOCX zip file (starts with 504b0304 PK header)
   if (templateDocxBuffer && templateDocxBuffer.length >= 100 && templateDocxBuffer.slice(0, 4).toString('hex') === '504b0304') {
     docxBaseBuffer = templateDocxBuffer;
   } else {
@@ -20,6 +19,7 @@ export async function renderDocxFromTemplate(
       template.code,
       template.theme.primary_color || '#0F172A',
       template.company_address,
+      template.company_website,
       template.company_phone
     );
   }
@@ -94,6 +94,8 @@ export async function renderDocxFromTemplate(
       COMPANY_NAME: template.company_name,
       company_address: template.company_address || 'Jakarta, Indonesia',
       Company_address: template.company_address || 'Jakarta, Indonesia',
+      company_website: template.company_website || 'www.company.com',
+      Company_website: template.company_website || 'www.company.com',
       company_phone: template.company_phone || '+62 21 500 8000',
       Company_phone: template.company_phone || '+62 21 500 8000',
       company_code: template.code,
@@ -140,7 +142,7 @@ export async function renderDocxFromTemplate(
       profil: cv.about_me || cv.summary || '',
       Profil: cv.about_me || cv.summary || '',
 
-      // 5. Professional Experience Placeholders (Formatted Text & Arrays)
+      // 5. Professional Experience Placeholders
       professional_experience: professionalExperienceText,
       Professional_experience: professionalExperienceText,
       PROFESSIONAL_EXPERIENCE: professionalExperienceText,
@@ -211,6 +213,7 @@ export async function renderDocxFromTemplate(
       template.code,
       template.theme.primary_color || '#0F172A',
       template.company_address,
+      template.company_website,
       template.company_phone
     );
 
@@ -219,6 +222,7 @@ export async function renderDocxFromTemplate(
     doc.render({
       company_name: template.company_name,
       company_address: template.company_address || 'Jakarta, Indonesia',
+      company_website: template.company_website || 'www.company.com',
       company_phone: template.company_phone || '+62 21 500 8000',
       Nama_lengkap: cv.personal_information.full_name || 'Candidate',
       role: cv.role || 'Candidate',

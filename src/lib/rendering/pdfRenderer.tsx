@@ -7,7 +7,7 @@ export async function generatePdfBuffer(
   template: CompanyTemplateConfig,
   lang: TargetLanguage
 ): Promise<Buffer> {
-  const { theme, layout, company_name, company_address, company_phone } = template;
+  const { theme, layout, company_name, company_address, company_website, company_phone } = template;
   const titles = layout.section_titles;
 
   const styles = StyleSheet.create({
@@ -141,7 +141,7 @@ export async function generatePdfBuffer(
           <Text style={styles.companyName}>{company_name}</Text>
           <Text style={styles.name}>{cv.personal_information.full_name || 'Candidate Profile'}</Text>
           <Text style={styles.companyContactTag}>
-            {company_address || 'Jakarta, Indonesia'} • Tel: {company_phone || '+62 21 500 8000'}
+            {company_address || 'Jakarta, Indonesia'} • {company_website || 'www.company.com'} • Tel: {company_phone || '+62 21 500 8000'}
           </Text>
         </View>
 
@@ -224,7 +224,7 @@ export async function generatePdfBuffer(
         })}
 
         <Text style={styles.footer}>
-          {company_name} • {company_address || 'Jakarta, Indonesia'} • Tel: {company_phone || '+62 21 500 8000'}
+          {company_name} • {company_address || 'Jakarta, Indonesia'} • {company_website || 'www.company.com'} • Tel: {company_phone || '+62 21 500 8000'}
         </Text>
       </Page>
     </Document>

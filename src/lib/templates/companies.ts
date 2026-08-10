@@ -8,6 +8,7 @@ export const COMPANY_TEMPLATES: CompanyTemplateConfig[] = [
     tagline: 'AI & Advanced Enterprise Software Solutions',
     description: 'Official corporate CV template with deep navy and cyan highlights, executive technical summary, and structured qualifications matrix.',
     company_address: 'Menara Aigen, Jl. HR Rasuna Said Blok X-5, Jakarta Selatan 12950',
+    company_website: 'www.aigen.co.id',
     company_phone: '+62 21 520 8890',
     logo_svg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="20" fill="#0F172A"/>
@@ -54,6 +55,7 @@ export const COMPANY_TEMPLATES: CompanyTemplateConfig[] = [
     tagline: 'Integrated Business & Enterprise Technology Consultancy',
     description: 'Clean emerald corporate template featuring a side-by-side profile summary, prominent certifications list, and linear career timeline.',
     company_address: 'Gudang Solusi Plaza, Jl. Jend. Sudirman Kav. 52-53, Jakarta Pusat 12190',
+    company_website: 'www.gudangsolusi.com',
     company_phone: '+62 21 515 9900',
     logo_svg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="20" fill="#065F46"/>
@@ -100,6 +102,7 @@ export const COMPANY_TEMPLATES: CompanyTemplateConfig[] = [
     tagline: 'Next-Gen Innovation, Web3 & Tech Architecture Labs',
     description: 'Modern indigo template with highlighted project portfolios per employment record and dynamic badge-style skills presentation.',
     company_address: 'NFT Innovation Hub, Jl. TB Simatupang No. 88, Jakarta Selatan 12430',
+    company_website: 'www.nftlabs.io',
     company_phone: '+62 21 788 4430',
     logo_svg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="20" fill="#4C1D95"/>
@@ -146,6 +149,7 @@ export const COMPANY_TEMPLATES: CompanyTemplateConfig[] = [
     tagline: 'High-Performance Software Engineering & Digital Infrastructure',
     description: 'Amber and Charcoal engineering template with bold section titles, compact project details, and executive technical competencies.',
     company_address: 'Rombags Tech Tower, Jl. Boulevard Barat Raya, Kelapa Gading, Jakarta Utara 14240',
+    company_website: 'www.rombags.tech',
     company_phone: '+62 21 458 1120',
     logo_svg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="20" fill="#78350F"/>
@@ -198,6 +202,7 @@ export function getCompanyTemplate(id: string): CompanyTemplateConfig {
     tagline: 'Custom Corporate Template',
     description: 'Custom corporate PT template.',
     company_address: 'Jakarta, Indonesia',
+    company_website: 'www.company.com',
     company_phone: '+62 21 500 8000',
     logo_svg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="20" fill="#0F766E"/>

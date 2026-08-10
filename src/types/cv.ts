@@ -113,6 +113,7 @@ export interface CompanyTemplateConfig {
   logo_svg: string;
   logo_url?: string;
   company_address?: string;
+  company_website?: string;
   company_phone?: string;
   isCustomUploaded?: boolean;
   uploadedAt?: string;

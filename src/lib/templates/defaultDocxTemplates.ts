@@ -17,13 +17,14 @@ import {
  * Creates an official target DOCX template buffer containing exact placeholders:
  * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
  * {professional_experience}, {technical_qualification}, {education}, {certifications},
- * {company_name}, {company_address}, {company_phone}
+ * {company_name}, {company_address}, {company_website}, {company_phone}
  */
 export async function createOfficialCompanyDocxTemplate(
   companyName: string,
   companyCode: string,
   primaryColorHex: string,
   companyAddress = 'Jakarta, Indonesia',
+  companyWebsite = 'www.company.com',
   companyPhone = '+62 21 500 8000'
 ): Promise<Buffer> {
   const cleanColor = (primaryColorHex || '#0F172A').replace('#', '');
@@ -66,7 +67,7 @@ export async function createOfficialCompanyDocxTemplate(
                 alignment: AlignmentType.CENTER,
                 children: [
                   new TextRun({
-                    text: `{company_address}  •  Tel: {company_phone}`,
+                    text: `{company_address}  •  {company_website}  •  Tel: {company_phone}`,
                     size: 15,
                     color: '64748B',
                     font: 'Calibri',
@@ -108,7 +109,7 @@ export async function createOfficialCompanyDocxTemplate(
                       new Paragraph({
                         children: [
                           new TextRun({
-                            text: '{company_address}  |  {company_phone}',
+                            text: '{company_address}  |  {company_website}  |  {company_phone}',
                             size: 16,
                             color: 'E2E8F0',
                             font: 'Calibri',
