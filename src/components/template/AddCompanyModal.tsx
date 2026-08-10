@@ -25,6 +25,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
   const [separatorColor, setSeparatorColor] = useState('#0284C7');
   const [secondaryColor, setSecondaryColor] = useState('#38BDF8');
   const [logoSvg, setLogoSvg] = useState<string>('');
+  const [logoUrl, setLogoUrl] = useState<string>('');
 
   const logoFileInputRef = useRef<HTMLInputElement>(null);
 
@@ -40,6 +41,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       setSeparatorColor(initialData.theme?.separator_color || initialData.theme?.secondary_color || '#0284C7');
       setSecondaryColor(initialData.theme?.secondary_color || '#38BDF8');
       setLogoSvg(initialData.logo_svg || '');
+      setLogoUrl(initialData.logo_url || '');
     } else {
       setCompanyName('');
       setCode('');
@@ -51,6 +53,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       setSeparatorColor('#0284C7');
       setSecondaryColor('#38BDF8');
       setLogoSvg('');
+      setLogoUrl('');
     }
   }, [initialData, isOpen]);
 
@@ -62,10 +65,11 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       const reader = new FileReader();
       reader.onload = () => {
         const base64 = reader.result as string;
+        setLogoUrl(base64);
         // Generate an SVG embedding the uploaded image base64
         const imgSvg = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
           <rect width="100" height="100" rx="20" fill="${primaryColor}"/>
-          <image href="${base64}" x="15" y="15" width="70" height="70" preserveAspectRatio="xMidYMid slice"/>
+          <image href="${base64}" x="10" y="10" width="80" height="80" preserveAspectRatio="xMidYMid slice"/>
         </svg>`;
         setLogoSvg(imgSvg);
       };
@@ -101,6 +105,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
         year: 'numeric',
       }),
       logo_svg: logoSvg || defaultSvg,
+      logo_url: logoUrl || initialData?.logo_url || '',
       theme: {
         primary_color: primaryColor,
         secondary_color: secondaryColor,
@@ -164,11 +169,13 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
-          {/* Logo Customizer */}
+          {/* Logo Customizer Preview */}
           <div className="bg-slate-950/60 p-3.5 rounded-xl border border-slate-800 flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-700 p-1 flex items-center justify-center">
-                {logoSvg ? (
+              <div className="w-12 h-12 rounded-xl bg-slate-900 border border-slate-700 p-1 flex items-center justify-center overflow-hidden">
+                {logoUrl ? (
+                  <img src={logoUrl} alt="Company Logo" className="w-full h-full object-contain" />
+                ) : logoSvg ? (
                   <div className="w-full h-full" dangerouslySetInnerHTML={{ __html: logoSvg }} />
                 ) : (
                   <Building2 className="w-6 h-6 text-slate-500" />
@@ -176,7 +183,9 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
               </div>
               <div>
                 <p className="font-bold text-white">Logo Perusahaan (Pojok Kanan Atas)</p>
-                <p className="text-[10px] text-slate-400">Upload logo PNG/JPG/SVG milik PT Anda</p>
+                <p className="text-[10px] text-slate-400">
+                  {logoUrl ? '✓ Logo Gambar Ter-upload' : 'Upload logo PNG/JPG/SVG milik PT Anda'}
+                </p>
               </div>
             </div>
 
@@ -194,7 +203,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
               className="px-3 py-1.5 rounded-lg text-[11px] font-semibold text-blue-300 bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 flex items-center gap-1.5"
             >
               <Upload className="w-3.5 h-3.5" />
-              <span>Upload Logo</span>
+              <span>{logoUrl ? 'Ganti Logo' : 'Upload Logo'}</span>
             </button>
           </div>
 
