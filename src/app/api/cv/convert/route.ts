@@ -16,7 +16,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { validateUploadedFile } from '@/lib/security/fileSanitizer';
 import { parsePdfBuffer } from '@/lib/parsers/pdfParser';
 import { parseDocxBuffer } from '@/lib/parsers/docxParser';
-import { extractCanonicalCvFromText } from '@/lib/extractor/cvExtractor';
+import { extractCvWithGeminiAI } from '@/lib/extractor/geminiExtractor';
 import { translateCanonicalCv } from '@/lib/translator/translationEngine';
 import { getCompanyTemplate } from '@/lib/templates/companies';
 import { validateCvConversionPipeline } from '@/lib/validation/auditEngine';
@@ -80,8 +80,8 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Extract & Qualify Canonical CV Schema
-      canonicalCv = extractCanonicalCvFromText(parsedDoc.rawText);
+      // Extract & Qualify Canonical CV Schema using Gemini AI
+      canonicalCv = await extractCvWithGeminiAI(parsedDoc.rawText);
     }
 
     // Determine Target Template Buffer:
