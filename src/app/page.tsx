@@ -6,6 +6,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { TemplateSelector } from '@/components/template/TemplateSelector';
 import { LanguageSelector } from '@/components/language/LanguageSelector';
+import { ReviewModal } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
 import {
@@ -35,6 +36,8 @@ export default function Home() {
   const [validationReport, setValidationReport] = useState<FinalValidationReport | null>(null);
   const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
   const [outputDocxUrl, setOutputDocxUrl] = useState<string | null>(null);
+
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState<boolean>(false);
 
   const handleFileSelect = (file: File | null) => {
     if (!file) {
@@ -97,13 +100,20 @@ export default function Home() {
       setOutputPdfUrl(data.outputs.pdfBase64);
       setOutputDocxUrl(data.outputs.docxBase64);
 
-      setCurrentStep(4);
+      // Open Review & Confirmation Modal first to let user confirm Gemini AI analysis
+      setIsReviewModalOpen(true);
     } catch (err) {
       console.error('Conversion Error:', err);
       setConversionError(err instanceof Error ? err.message : 'Unknown error during conversion.');
     } finally {
       setIsConverting(false);
     }
+  };
+
+  const handleConfirmExport = (confirmedCv: CanonicalCV) => {
+    setProcessedCv(confirmedCv);
+    setIsReviewModalOpen(false);
+    setCurrentStep(4);
   };
 
   const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
@@ -121,10 +131,10 @@ export default function Home() {
             </div>
             <div>
               <p className="text-xs font-bold text-emerald-300">
-                Mode Gemini AI & Converter Aktif
+                Mode Gemini AI & Privacy Safeguard Aktif
               </p>
               <p className="text-[11px] text-emerald-400/80">
-                Kustomisasi PT (Logo Top-Right, Warna Separator, Alamat & Telp Footer) aktif.
+                Konfirmasi hasil analisis AI aktif. Informasi kontak pribadi (email & phone) disembunyikan untuk CV Perusahaan.
               </p>
             </div>
           </div>
@@ -147,7 +157,7 @@ export default function Home() {
           </h1>
 
           <p className="text-sm text-slate-400 leading-relaxed">
-            Unggah CV kandidat, atur parameter PT (Logo top-right, warna separator, alamat & telp di footer), dan hasilkan CV profesional.
+            Unggah CV kandidat, atur parameter PT (Logo top-right, warna separator, alamat, website, & telp di footer), dan konfirmasi hasil analisis sebelum mencetak.
           </p>
         </div>
 
@@ -219,7 +229,7 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <span>Validate & Convert CV Now</span>
+                      <span>Analisis & Konfirmasi Data AI</span>
                       <ArrowRight className="w-4 h-4" />
                     </>
                   )}
@@ -248,6 +258,19 @@ export default function Home() {
           />
         )}
       </div>
+
+      {/* REVIEW & CONFIRMATION MODAL */}
+      {extractedCv && processedCv && (
+        <ReviewModal
+          isOpen={isReviewModalOpen}
+          extractedCv={extractedCv}
+          processedCv={processedCv}
+          template={selectedTemplateConfig}
+          language={targetLanguage}
+          onClose={() => setIsReviewModalOpen(false)}
+          onConfirmExport={handleConfirmExport}
+        />
+      )}
     </main>
   );
 }
