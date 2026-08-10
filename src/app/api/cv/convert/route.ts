@@ -80,8 +80,13 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Extract & Qualify Canonical CV Schema using Gemini AI
-      canonicalCv = await extractCvWithGeminiAI(parsedDoc.rawText);
+      // Extract & Qualify Canonical CV Schema using Gemini AI & File Upload API
+      canonicalCv = await extractCvWithGeminiAI(
+        parsedDoc.rawText,
+        uploadedFileBuffer,
+        file.name,
+        file.type || 'application/pdf'
+      );
     }
 
     // Determine Target Template Buffer:
