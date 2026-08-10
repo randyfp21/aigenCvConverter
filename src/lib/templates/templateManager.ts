@@ -93,8 +93,8 @@ export function createTemplateFromUploadedFile(
     id: templateId,
     company_name: companyName,
     code: targetCompanyId ? targetCompanyId.replace('company-', '').toUpperCase() : 'CUSTOM',
-    tagline: `Official Uploaded Target CV Template (${fileName})`,
-    description: `Target layout parsed from uploaded template file '${fileName}'. Saved for current and future conversions.`,
+    tagline: `Official Corporate Target CV Template (${fileName})`,
+    description: `Target layout parsed for company '${companyName}'. Saved for current and future conversions.`,
     isCustomUploaded: true,
     uploadedAt: new Date().toLocaleDateString('en-US', {
       month: 'short',
@@ -104,12 +104,13 @@ export function createTemplateFromUploadedFile(
     logo_svg: `<svg viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
       <rect width="100" height="100" rx="20" fill="${palette.primary}"/>
       <path d="M30 30H70V70H30V30Z" stroke="${palette.secondary}" stroke-width="6"/>
-      <circle cx="50" cy="50" r="10" fill="${palette.accent}"/>
+      <circle cx="50" cy="50" r="12" fill="${palette.accent}"/>
     </svg>`,
     theme: {
       primary_color: palette.primary,
       secondary_color: palette.secondary,
       accent_color: palette.accent,
+      separator_color: palette.secondary,
       text_color: '#1F2937',
       background_color: '#FFFFFF',
       font_family: 'Inter, Helvetica, Arial, sans-serif',

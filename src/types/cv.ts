@@ -98,6 +98,7 @@ export interface CompanyTheme {
   primary_color: string;
   secondary_color: string;
   accent_color: string;
+  separator_color: string;
   text_color: string;
   background_color: string;
   font_family: string;
@@ -110,6 +111,7 @@ export interface CompanyTemplateConfig {
   tagline: string;
   description: string;
   logo_svg: string;
+  logo_url?: string;
   company_address?: string;
   company_phone?: string;
   isCustomUploaded?: boolean;

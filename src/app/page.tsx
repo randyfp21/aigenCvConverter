@@ -1,90 +1,73 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 'use client';
 
 import React, { useState } from 'react';
-import { Navbar } from '@/components/ui/Navbar';
-import { Stepper } from '@/components/ui/Stepper';
+import { Navbar } from '@/components/layout/Navbar';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { TemplateSelector } from '@/components/template/TemplateSelector';
 import { LanguageSelector } from '@/components/language/LanguageSelector';
-import { ReviewModal } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
-import { ProgressAuditModal } from '@/components/validation/ProgressAuditModal';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
-import { SAMPLE_RANDY_FARHAN_CV } from '@/data/sampleCv';
 import {
   CanonicalCV,
   CompanyTemplateConfig,
   FileMetadata,
-  TargetLanguage,
   FinalValidationReport,
+  TargetLanguage,
 } from '@/types/cv';
-import { ArrowRight, ShieldCheck, AlertCircle, FileCheck } from 'lucide-react';
+import { ArrowRight, Sparkles, ShieldCheck, CheckCircle2 } from 'lucide-react';
 
-export default function HomePage() {
-  // Step 1 State: Source CV Upload
+export default function Home() {
+  const [currentStep, setCurrentStep] = useState<number>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileMetadata, setFileMetadata] = useState<FileMetadata | null>(null);
   const [isSampleMode, setIsSampleMode] = useState<boolean>(false);
-
-  // Step 2 & 3 State: Target Template & Output Language
-  const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<CompanyTemplateConfig>(COMPANY_TEMPLATES[0]);
-  const [targetTemplateFile, setTargetTemplateFile] = useState<File | null>(null);
+  const [selectedTemplateConfig, setSelectedTemplateConfig] = useState<CompanyTemplateConfig>(
+    COMPANY_TEMPLATES[0]
+  );
   const [targetLanguage, setTargetLanguage] = useState<TargetLanguage>('en');
 
-  // Step Control & Progress
-  const [currentStep, setCurrentStep] = useState<number>(1);
   const [isConverting, setIsConverting] = useState<boolean>(false);
-  const [conversionStage, setConversionStage] = useState<number>(0);
+  const [conversionError, setConversionError] = useState<string | null>(null);
 
-  // Parsed & Rendered Data
   const [extractedCv, setExtractedCv] = useState<CanonicalCV | null>(null);
   const [processedCv, setProcessedCv] = useState<CanonicalCV | null>(null);
   const [validationReport, setValidationReport] = useState<FinalValidationReport | null>(null);
-
-  const [pdfBase64Url, setPdfBase64Url] = useState<string>('');
-  const [docxBase64Url, setDocxBase64Url] = useState<string>('');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-  const isValidateButtonEnabled =
-    (selectedFile !== null || isSampleMode) &&
-    Boolean(selectedTemplateConfig) &&
-    Boolean(targetLanguage);
+  const [outputPdfUrl, setOutputPdfUrl] = useState<string | null>(null);
+  const [outputDocxUrl, setOutputDocxUrl] = useState<string | null>(null);
 
   const handleFileSelect = (file: File | null) => {
-    setSelectedFile(file);
-    if (file) {
-      setIsSampleMode(false);
-      const ext = file.name.split('.').pop()?.toLowerCase() as 'pdf' | 'docx';
-      setFileMetadata({
-        name: file.name,
-        sizeBytes: file.size,
-        mimeType: file.type,
-        extension: ext || 'pdf',
-      });
-      setCurrentStep(2);
-    } else {
+    if (!file) {
+      setSelectedFile(null);
       setFileMetadata(null);
-      setExtractedCv(null);
+      return;
     }
+    setSelectedFile(file);
+    setIsSampleMode(false);
+    setFileMetadata({
+      name: file.name,
+      sizeBytes: file.size,
+      mimeType: file.type,
+      extension: file.name.endsWith('.pdf') ? 'pdf' : 'docx',
+    });
+    if (currentStep === 1) setCurrentStep(2);
   };
 
   const handleUseSample = () => {
-    setSelectedFile(null);
     setIsSampleMode(true);
+    setSelectedFile(null);
     setFileMetadata({
       name: 'Randy_Farhan_CV.pdf',
       sizeBytes: 2450000,
       mimeType: 'application/pdf',
       extension: 'pdf',
     });
-    setExtractedCv(SAMPLE_RANDY_FARHAN_CV);
-    setCurrentStep(2);
+    if (currentStep === 1) setCurrentStep(2);
   };
 
   const handleValidateAndConvert = async () => {
-    setErrorMessage(null);
     setIsConverting(true);
-    setConversionStage(1);
+    setConversionError(null);
 
     try {
       const formData = new FormData();
@@ -94,80 +77,79 @@ export default function HomePage() {
         formData.append('file', selectedFile);
       }
 
-      if (targetTemplateFile) {
-        formData.append('templateFile', targetTemplateFile);
-      }
-
       formData.append('templateId', selectedTemplateConfig.id);
       formData.append('language', targetLanguage);
-
-      setConversionStage(2);
-      await new Promise((r) => setTimeout(r, 300));
-      setConversionStage(3);
-      await new Promise((r) => setTimeout(r, 300));
 
       const res = await fetch('/api/cv/convert', {
         method: 'POST',
         body: formData,
       });
 
-      setConversionStage(5);
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        throw new Error(data.error || 'CV Conversion failed during backend validation.');
+        throw new Error(data.error || 'CV conversion failed.');
       }
-
-      setConversionStage(6);
-      await new Promise((r) => setTimeout(r, 300));
-      setConversionStage(7);
 
       setExtractedCv(data.extractedCv);
       setProcessedCv(data.processedCv);
       setValidationReport(data.validationReport);
-      setPdfBase64Url(data.outputs.pdfBase64);
-      setDocxBase64Url(data.outputs.docxBase64);
+      setOutputPdfUrl(data.outputs.pdfBase64);
+      setOutputDocxUrl(data.outputs.docxBase64);
 
-      setCurrentStep(4); // Open Review Step
+      setCurrentStep(4);
     } catch (err) {
-      setErrorMessage(err instanceof Error ? err.message : String(err));
+      console.error('Conversion Error:', err);
+      setConversionError(err instanceof Error ? err.message : 'Unknown error during conversion.');
     } finally {
       setIsConverting(false);
     }
   };
 
-  const handleConfirmReview = () => {
-    setCurrentStep(5); // Preview Step
-  };
-
-  const handleConvertAgain = () => {
-    setCurrentStep(1);
-    setSelectedFile(null);
-    setFileMetadata(null);
-    setIsSampleMode(false);
-    setTargetTemplateFile(null);
-    setExtractedCv(null);
-    setProcessedCv(null);
-    setPdfBase64Url('');
-    setDocxBase64Url('');
-  };
+  const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans selection:bg-blue-600 selection:text-white flex flex-col">
+    <main className="min-h-screen bg-slate-950 text-slate-100 antialiased font-sans selection:bg-blue-500 selection:text-white">
       <Navbar />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
-        <Stepper currentStep={currentStep} />
-
-        {errorMessage && (
-          <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-sm flex items-center space-x-3 shadow-lg">
-            <AlertCircle className="w-5 h-5 flex-shrink-0" />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        {/* Banner Auto Allow Directive */}
+        <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-2xl p-4 flex items-center justify-between">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+              AI
+            </div>
             <div>
-              <p className="font-bold">Conversion Blocked</p>
-              <p className="text-xs text-red-300">{errorMessage}</p>
+              <p className="text-xs font-bold text-emerald-300">
+                Mode Gemini AI & Converter Aktif
+              </p>
+              <p className="text-[11px] text-emerald-400/80">
+                Kustomisasi PT (Logo Top-Right, Warna Separator, Alamat & Telp Footer) aktif.
+              </p>
             </div>
           </div>
-        )}
+
+          <span className="text-[10px] uppercase font-bold tracking-wider px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
+            <CheckCircle2 className="w-3.5 h-3.5" />
+            <span>Ready</span>
+          </span>
+        </div>
+
+        {/* Hero Section */}
+        <div className="text-center space-y-3 max-w-3xl mx-auto pt-2">
+          <div className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-semibold">
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>Enterprise Corporate CV Qualification Engine</span>
+          </div>
+
+          <h1 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+            Corporate Standardized CV Converter
+          </h1>
+
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Unggah CV kandidat, atur parameter PT (Logo top-right, warna separator, alamat & telp di footer), dan hasilkan CV profesional.
+          </p>
+        </div>
 
         {/* STEP 1 to 3 Flow */}
         {currentStep <= 3 && (
@@ -186,7 +168,6 @@ export default function HomePage() {
                 setSelectedTemplateConfig(tmpl);
                 if (currentStep === 2) setCurrentStep(3);
               }}
-              onTargetTemplateFileSelect={(file) => setTargetTemplateFile(file)}
             />
 
             <LanguageSelector
@@ -210,62 +191,63 @@ export default function HomePage() {
                           : 'bg-slate-800 text-slate-500'
                       }`}
                     >
-                      {isValidateButtonEnabled ? 'Ready for Conversion' : 'Requirements Incomplete'}
+                      {isValidateButtonEnabled ? 'Ready for Conversion' : 'Awaiting File'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
-                    <span>Source CV: {isSampleMode ? 'Randy_Farhan_CV.pdf' : selectedFile ? selectedFile.name : 'Upload File First'}</span>
-                    <span>• Target Template: {selectedTemplateConfig.company_name}</span>
-                    {targetTemplateFile && (
-                      <span className="text-emerald-400 font-semibold flex items-center gap-1">
-                        <FileCheck className="w-3.5 h-3.5" />
-                        ({targetTemplateFile.name})
-                      </span>
-                    )}
+                  <p className="text-[11px] text-slate-400">
+                    Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
+                    {selectedTemplateConfig.company_name} ({selectedTemplateConfig.code})
                   </p>
                 </div>
               </div>
 
-              <button
-                type="button"
-                disabled={!isValidateButtonEnabled || isConverting}
-                onClick={handleValidateAndConvert}
-                className="w-full sm:w-auto px-8 py-3.5 rounded-xl font-bold text-sm text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 disabled:opacity-40 disabled:cursor-not-allowed shadow-xl shadow-blue-500/25 flex items-center justify-center space-x-2 transition-all transform active:scale-95"
-              >
-                <span>Validate & Convert CV</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="flex items-center space-x-3 w-full sm:w-auto">
+                <button
+                  type="button"
+                  onClick={handleValidateAndConvert}
+                  disabled={!isValidateButtonEnabled || isConverting}
+                  className={`w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs transition-all shadow-xl flex items-center justify-center space-x-2 ${
+                    isValidateButtonEnabled && !isConverting
+                      ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white shadow-blue-500/25 active:scale-95'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-700'
+                  }`}
+                >
+                  {isConverting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      <span>Analisis Gemini AI & Process...</span>
+                    </>
+                  ) : (
+                    <>
+                      <span>Validate & Convert CV Now</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
+
+            {conversionError && (
+              <div className="p-4 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs font-semibold">
+                Conversion Error: {conversionError}
+              </div>
+            )}
           </div>
         )}
 
-        {/* STEP 4: Review Extracted CV Data */}
-        {currentStep === 4 && extractedCv && (
-          <ReviewModal
-            cv={extractedCv}
-            template={selectedTemplateConfig}
-            language={targetLanguage}
-            onConfirm={handleConfirmReview}
-            onBack={() => setCurrentStep(2)}
-            isConverting={isConverting}
-          />
-        )}
-
-        {/* STEP 5: Final Preview & Download */}
-        {currentStep === 5 && (
+        {/* STEP 4: PREVIEW & DOWNLOAD */}
+        {currentStep === 4 && processedCv && outputPdfUrl && outputDocxUrl && (
           <PreviewSection
             template={selectedTemplateConfig}
             language={targetLanguage}
-            pdfBase64Url={pdfBase64Url}
-            docxBase64Url={docxBase64Url}
-            candidateName={extractedCv?.personal_information.full_name || 'Candidate'}
+            pdfBase64Url={outputPdfUrl}
+            docxBase64Url={outputDocxUrl}
+            candidateName={processedCv.personal_information.full_name || 'Candidate'}
             validationReport={validationReport || undefined}
-            onConvertAgain={handleConvertAgain}
+            onConvertAgain={() => setCurrentStep(1)}
           />
         )}
-      </main>
-
-      {isConverting && <ProgressAuditModal currentStageIndex={conversionStage} />}
-    </div>
+      </div>
+    </main>
   );
 }
