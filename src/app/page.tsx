@@ -148,47 +148,47 @@ export default function Home() {
     <ThemeProvider>
       <main className="min-h-screen transition-colors duration-500 bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-blue-500 selection:text-white relative overflow-hidden">
         {/* iOS 27 Liquid Glass Background Blobs */}
-        <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/10 via-sky-400/10 to-transparent rounded-full blur-3xl pointer-events-none" />
-        <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-500/10 via-purple-500/10 to-transparent rounded-full blur-3xl pointer-events-none" />
+        <div className="fixed top-0 left-1/4 w-[600px] h-[600px] bg-gradient-to-br from-blue-500/20 via-sky-400/15 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse" />
+        <div className="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-gradient-to-tr from-indigo-500/20 via-purple-500/15 to-transparent rounded-full blur-3xl pointer-events-none animate-pulse" />
 
         <Navbar />
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
           {/* Banner Auto Allow & PostgreSQL Active */}
-          <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-3xl p-4 flex items-center justify-between backdrop-blur-2xl shadow-lg">
+          <div className="liquid-glass rounded-3xl p-4 flex items-center justify-between shadow-lg">
             <div className="flex items-center space-x-3">
-              <div className="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-500 flex items-center justify-center font-bold shadow-md">
                 <Database className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-extrabold text-emerald-600 dark:text-emerald-300">
+                <p className="text-xs font-black text-emerald-600 dark:text-emerald-300">
                   Mode iOS 27 Liquid Glass &amp; PostgreSQL Active
                 </p>
-                <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80">
+                <p className="text-[11px] text-emerald-700/80 dark:text-emerald-400/80 font-medium">
                   Tampilan Liquid Glass, Light &amp; Dark mode aktif. PostgreSQL <strong>aigencv_db</strong> menyimpan seluruh data PT secara permanen.
                 </p>
               </div>
             </div>
 
-            <span className="text-[10px] uppercase font-black tracking-widest px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1 shadow-sm">
+            <span className="text-[10px] uppercase font-black tracking-widest px-3.5 py-1.5 rounded-full bg-emerald-500/20 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5 shadow-sm">
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>System Online</span>
             </span>
           </div>
 
           {/* Hero Section */}
-          <div className="text-center space-y-3 max-w-3xl mx-auto pt-2">
-            <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-sky-300 text-xs font-bold backdrop-blur-xl shadow-sm">
-              <Sparkles className="w-3.5 h-3.5" />
+          <div className="text-center space-y-4 max-w-3xl mx-auto pt-2">
+            <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-600 dark:text-sky-300 text-xs font-extrabold backdrop-blur-xl shadow-md">
+              <Sparkles className="w-4 h-4 text-sky-400" />
               <span>iOS 27 Liquid Enterprise Qualification Engine</span>
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-black tracking-tight leading-tight text-slate-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 dark:from-white dark:via-sky-200 dark:to-slate-300">
+            <h1 className="text-4xl sm:text-6xl font-black tracking-tight leading-tight text-slate-900 dark:text-white bg-clip-text text-transparent bg-gradient-to-r from-slate-900 via-blue-900 to-slate-800 dark:from-white dark:via-sky-200 dark:to-slate-300">
               Corporate Standardized CV Converter
             </h1>
 
-            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-              Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator & aksen, alamat, website, telp), dan hasilkan CV resmi.
+            <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator &amp; aksen, alamat, website, telp), dan hasilkan CV resmi.
             </p>
           </div>
 
@@ -217,16 +217,16 @@ export default function Home() {
               />
 
               {/* Validation & Convert Action Banner */}
-              <div className="sticky bottom-6 z-40 bg-white/80 dark:bg-slate-900/90 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 backdrop-blur-3xl shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="sticky bottom-6 z-40 liquid-glass rounded-3xl p-5 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 rounded-2xl bg-blue-600/20 text-blue-600 dark:text-blue-400 border border-blue-500/30 flex items-center justify-center">
-                    <ShieldCheck className="w-5 h-5" />
+                  <div className="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-600 dark:text-sky-400 border border-blue-500/30 flex items-center justify-center shadow-lg">
+                    <ShieldCheck className="w-6 h-6" />
                   </div>
                   <div>
                     <div className="flex items-center space-x-2">
-                      <span className="text-xs font-extrabold text-slate-900 dark:text-white">Validation Status:</span>
+                      <span className="text-xs font-black text-slate-900 dark:text-white">Validation Status:</span>
                       <span
-                        className={`text-[10px] uppercase font-black px-2 py-0.5 rounded-full ${
+                        className={`text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full ${
                           isValidateButtonEnabled
                             ? 'bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30'
                             : 'bg-slate-200 dark:bg-slate-800 text-slate-500'
@@ -235,12 +235,12 @@ export default function Home() {
                         {isValidateButtonEnabled ? 'Ready for Conversion' : 'Awaiting File'}
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-medium">
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">
                       Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
                       <strong className="text-slate-900 dark:text-white">{selectedTemplateConfig.company_name}</strong> ({selectedTemplateConfig.code})
                     </p>
                     {isConverting && conversionProgressStep && (
-                      <p className="text-[10px] font-bold text-blue-600 dark:text-sky-400 animate-pulse mt-0.5">
+                      <p className="text-[10px] font-black text-blue-600 dark:text-sky-400 animate-pulse mt-0.5">
                         {conversionProgressStep}
                       </p>
                     )}
@@ -252,7 +252,7 @@ export default function Home() {
                     type="button"
                     onClick={handleValidateAndConvert}
                     disabled={!isValidateButtonEnabled || isConverting}
-                    className={`w-full sm:w-auto px-8 py-3.5 rounded-2xl font-black text-xs transition-all duration-300 shadow-xl flex items-center justify-center space-x-2 ${
+                    className={`w-full sm:w-auto px-8 py-4 rounded-2xl font-black text-xs transition-all duration-300 shadow-xl flex items-center justify-center space-x-2 glass-glow ${
                       isValidateButtonEnabled && !isConverting
                         ? 'bg-gradient-to-r from-blue-600 via-indigo-600 to-sky-500 hover:from-blue-500 hover:to-sky-400 text-white shadow-blue-500/30 active:scale-95'
                         : 'bg-slate-200 dark:bg-slate-800 text-slate-400 cursor-not-allowed border border-slate-300 dark:border-slate-700'
