@@ -24,7 +24,7 @@ import { generatePdfBuffer } from '@/lib/rendering/pdfRenderer';
 import { overlayCvOnPdfTemplate } from '@/lib/rendering/pdfTemplateOverlay';
 import { renderDocxFromTemplate } from '@/lib/rendering/docxTemplateEngine';
 import { SAMPLE_RANDY_FARHAN_CV } from '@/data/sampleCv';
-import { TargetLanguage, FileMetadata } from '@/types/cv';
+import { TargetLanguage, FileMetadata, CompanyTemplateConfig } from '@/types/cv';
 
 export const dynamic = 'force-dynamic';
 
@@ -34,6 +34,7 @@ export async function POST(req: NextRequest) {
     const file = formData.get('file') as File | null;
     const templateFile = formData.get('templateFile') as File | null;
     const templateId = (formData.get('templateId') as string) || 'company-aigen';
+    const templateConfigJson = formData.get('templateConfig') as string | null;
     const language = ((formData.get('language') as string) || 'en') as TargetLanguage;
     const isSampleMode = formData.get('isSample') === 'true';
 
@@ -99,8 +100,24 @@ export async function POST(req: NextRequest) {
     // Translate if requested
     const processedCv = translateCanonicalCv(canonicalCv, language);
 
-    // Get Target Company Template Config
-    const templateConfig = getCompanyTemplate(templateId);
+    // Get Target Company Template Config (Merge with client-customized templateConfig if provided)
+    let templateConfig = getCompanyTemplate(templateId);
+
+    if (templateConfigJson) {
+      try {
+        const customConfig = JSON.parse(templateConfigJson) as CompanyTemplateConfig;
+        templateConfig = {
+          ...templateConfig,
+          ...customConfig,
+          theme: {
+            ...templateConfig.theme,
+            ...customConfig.theme,
+          },
+        };
+      } catch (e) {
+        console.warn('Failed to parse custom templateConfig from formData:', e);
+      }
+    }
 
     // Audit Pipeline Validation
     const validationReport = validateCvConversionPipeline(
@@ -121,7 +138,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Render Outputs into CLEAN Corporate Company CV (No superimposing on candidate source CV)
+    // Render Outputs into CLEAN Corporate Company CV with customized logo, separator colors, and footer details
     let pdfBuffer: Buffer;
     if (targetTemplateBuffer) {
       pdfBuffer = await overlayCvOnPdfTemplate(

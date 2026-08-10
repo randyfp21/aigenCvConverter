@@ -81,6 +81,7 @@ export default function Home() {
       }
 
       formData.append('templateId', selectedTemplateConfig.id);
+      formData.append('templateConfig', JSON.stringify(selectedTemplateConfig));
       formData.append('language', targetLanguage);
 
       const res = await fetch('/api/cv/convert', {
@@ -131,10 +132,10 @@ export default function Home() {
             </div>
             <div>
               <p className="text-xs font-bold text-emerald-300">
-                Mode Gemini AI & Privacy Safeguard Aktif
+                Mode Gemini AI & Profil PT Presisi Aktif
               </p>
               <p className="text-[11px] text-emerald-400/80">
-                Konfirmasi hasil analisis AI aktif. Informasi kontak pribadi (email & phone) disembunyikan untuk CV Perusahaan.
+                Logo, warna separator, warna aksen, dan data footer (alamat, website, telp) diambil 100% dari profil PT yang diset di halaman awal.
               </p>
             </div>
           </div>
@@ -157,7 +158,7 @@ export default function Home() {
           </h1>
 
           <p className="text-sm text-slate-400 leading-relaxed">
-            Unggah CV kandidat, atur parameter PT (Logo top-right, warna separator, alamat, website, & telp di footer), dan konfirmasi hasil analisis sebelum mencetak.
+            Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator & aksen, alamat, website, telp), dan hasilkan CV resmi.
           </p>
         </div>
 
