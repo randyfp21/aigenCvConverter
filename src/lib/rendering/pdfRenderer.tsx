@@ -39,7 +39,7 @@ export async function generatePdfBuffer(
   const styles = StyleSheet.create({
     page: {
       paddingTop: 28,
-      paddingBottom: 36,
+      paddingBottom: 44,
       paddingHorizontal: 32,
       fontFamily: 'Helvetica',
       fontSize: 9.5,
@@ -163,17 +163,25 @@ export async function generatePdfBuffer(
       marginBottom: 2,
       color: '#1F2937',
     },
-    footer: {
+    footerBanner: {
       position: 'absolute',
-      bottom: 14,
-      left: 32,
-      right: 32,
-      fontSize: 7.5,
-      textAlign: 'center',
-      color: '#64748B',
-      borderTopWidth: 0.8,
+      bottom: 0,
+      left: 0,
+      right: 0,
+      backgroundColor: primaryColor,
+      paddingVertical: 6,
+      paddingHorizontal: 20,
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderTopWidth: 2,
       borderTopColor: sepColor,
-      paddingTop: 4,
+    },
+    footerText: {
+      fontSize: 7.5,
+      color: '#FFFFFF',
+      textAlign: 'center',
+      fontWeight: 'bold',
     },
   });
 
@@ -300,10 +308,12 @@ export async function generatePdfBuffer(
           return null;
         })}
 
-        {/* Bottom Page Footer */}
-        <Text style={styles.footer}>
-          {company_name}  •  {company_address || 'Jakarta, Indonesia'}  •  {company_website || 'www.company.com'}  •  Tel: {company_phone || '+62 21 500 8000'}
-        </Text>
+        {/* Color Block Footer Banner on EVERY PAGE */}
+        <View style={styles.footerBanner} fixed>
+          <Text style={styles.footerText}>
+            {company_name}  •  {company_address || 'Jakarta, Indonesia'}  •  {company_website || 'www.company.com'}  •  Tel: {company_phone || '+62 21 500 8000'}
+          </Text>
+        </View>
       </Page>
     </Document>
   );

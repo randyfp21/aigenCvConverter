@@ -14,7 +14,7 @@ import {
 } from 'docx';
 
 /**
- * Creates an official target DOCX template buffer with compact spacing (no wasted white spaces):
+ * Creates an official target DOCX template buffer with color block footer on EVERY page:
  * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
  * {professional_experience}, {technical_qualification}, {education}, {certifications},
  * {company_name}, {company_address}, {company_website}, {company_phone}
@@ -105,14 +105,36 @@ export async function createOfficialCompanyDocxTemplate(
         footers: {
           default: new Footer({
             children: [
-              new Paragraph({
-                alignment: AlignmentType.CENTER,
-                children: [
-                  new TextRun({
-                    text: `{company_name}  •  {company_address}  •  {company_website}  •  Tel: {company_phone}`,
-                    size: 14,
-                    color: '64748B',
-                    font: 'Calibri',
+              new Table({
+                width: { size: 100, type: WidthType.PERCENTAGE },
+                rows: [
+                  new TableRow({
+                    children: [
+                      new TableCell({
+                        shading: { fill: cleanPrimary },
+                        margins: { top: 100, bottom: 100, left: 180, right: 180 },
+                        borders: {
+                          top: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' },
+                          bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                          right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                        },
+                        children: [
+                          new Paragraph({
+                            alignment: AlignmentType.CENTER,
+                            children: [
+                              new TextRun({
+                                text: `{company_name}  •  {company_address}  •  {company_website}  •  Tel: {company_phone}`,
+                                bold: true,
+                                size: 15,
+                                color: 'FFFFFF',
+                                font: 'Calibri',
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+                    ],
                   }),
                 ],
               }),
