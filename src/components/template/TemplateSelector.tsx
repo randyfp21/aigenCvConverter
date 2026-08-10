@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { CheckCircle2, Upload, History, FileUp, Sparkles, Building } from 'lucide-react';
+import { CheckCircle2, FileUp, History, Sparkles, Building } from 'lucide-react';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
 import { CompanyTemplateConfig } from '@/types/cv';
 import {
@@ -12,11 +12,13 @@ import {
 interface TemplateSelectorProps {
   selectedTemplateId: string;
   onSelectTemplate: (template: CompanyTemplateConfig) => void;
+  onTargetTemplateFileSelect?: (file: File | null) => void;
 }
 
 export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
   selectedTemplateId,
   onSelectTemplate,
+  onTargetTemplateFileSelect,
 }) => {
   const [historyTemplates, setHistoryTemplates] = useState<CompanyTemplateConfig[]>([]);
   const [pdfMap, setPdfMap] = useState<UploadedCompanyPdfMap>({});
@@ -37,6 +39,11 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       const newTemplate = createTemplateFromUploadedFile(file.name);
       setHistoryTemplates(getStoredTemplateHistory());
       setPdfMap(getStoredCompanyPdfMap());
+
+      if (onTargetTemplateFileSelect) {
+        onTargetTemplateFileSelect(file);
+      }
+
       onSelectTemplate(newTemplate);
       setActiveTab('history');
     }
@@ -48,6 +55,11 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       const updatedTemplate = createTemplateFromUploadedFile(file.name, uploadingForCompanyId);
       setHistoryTemplates(getStoredTemplateHistory());
       setPdfMap(getStoredCompanyPdfMap());
+
+      if (onTargetTemplateFileSelect) {
+        onTargetTemplateFileSelect(file);
+      }
+
       onSelectTemplate(updatedTemplate);
       setUploadingForCompanyId(null);
     }
@@ -64,11 +76,11 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4">
         <div>
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
-            <span>STEP 2 — Select Target CV Template</span>
+            <span>STEP 2 — Select / Upload Target CV Template (DOCX / PDF)</span>
             <CheckCircle2 className="w-5 h-5 text-emerald-400" />
           </h2>
           <p className="text-xs text-slate-400">
-            Select an official company template or upload a custom target PDF for each PT.
+            Upload your official target DOCX/PDF template file per company to map candidate data into your exact layout.
           </p>
         </div>
 
@@ -106,7 +118,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         type="file"
         ref={generalFileInputRef}
         onChange={handleGeneralFileUpload}
-        accept=".pdf,.docx"
+        accept=".docx,.pdf"
         className="hidden"
       />
 
@@ -114,7 +126,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
         type="file"
         ref={companyFileInputRef}
         onChange={handleCompanyPdfUpload}
-        accept=".pdf,.docx"
+        accept=".docx,.pdf"
         className="hidden"
       />
 
@@ -158,12 +170,12 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                   {pdfAttachment ? (
                     <div className="mb-4 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-[10px] text-emerald-400 flex items-center gap-1.5">
                       <CheckCircle2 className="w-3.5 h-3.5 flex-shrink-0" />
-                      <span className="truncate">Active Template PDF: {pdfAttachment.pdfFileName}</span>
+                      <span className="truncate">Active Template File: {pdfAttachment.pdfFileName}</span>
                     </div>
                   ) : (
                     <div className="mb-4 p-2.5 rounded-lg bg-slate-900/60 border border-slate-800 text-[10px] text-slate-400 flex items-center gap-1.5">
                       <Sparkles className="w-3.5 h-3.5 text-blue-400 flex-shrink-0" />
-                      <span>Ready to receive target PDF</span>
+                      <span>Ready to receive target DOCX/PDF</span>
                     </div>
                   )}
                 </div>
@@ -175,7 +187,7 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
                     className="w-full py-2 rounded-lg text-[11px] font-semibold text-emerald-300 bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center space-x-1.5 transition-all"
                   >
                     <FileUp className="w-3.5 h-3.5" />
-                    <span>Upload PDF Template</span>
+                    <span>Upload Target DOCX / PDF</span>
                   </button>
 
                   <button
@@ -210,14 +222,15 @@ export const TemplateSelector: React.FC<TemplateSelectorProps> = ({
               <History className="w-8 h-8 text-slate-600 mx-auto mb-2" />
               <p className="font-semibold text-slate-300 mb-1">No Custom Uploaded History Yet</p>
               <p className="text-slate-500 mb-4">
-                Upload target template PDFs for your PTs above to store them in your history registry.
+                Upload target template DOCX/PDF files for your PTs above to store them in your history registry.
               </p>
               <button
                 type="button"
                 onClick={() => generalFileInputRef.current?.click()}
-                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500"
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-500 flex items-center justify-center mx-auto space-x-2"
               >
-                Upload Target PDF Template
+                <FileUp className="w-4 h-4" />
+                <span>Upload Target DOCX / PDF Template</span>
               </button>
             </div>
           ) : (

@@ -18,7 +18,7 @@ import {
   TargetLanguage,
   FinalValidationReport,
 } from '@/types/cv';
-import { ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { ArrowRight, ShieldCheck, AlertCircle, FileCheck } from 'lucide-react';
 
 export default function HomePage() {
   // Step 1 State: Source CV Upload
@@ -186,6 +186,7 @@ export default function HomePage() {
                 setSelectedTemplateConfig(tmpl);
                 if (currentStep === 2) setCurrentStep(3);
               }}
+              onTargetTemplateFileSelect={(file) => setTargetTemplateFile(file)}
             />
 
             <LanguageSelector
@@ -212,9 +213,15 @@ export default function HomePage() {
                       {isValidateButtonEnabled ? 'Ready for Conversion' : 'Requirements Incomplete'}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-400">
-                    Source CV: {isSampleMode ? 'Randy_Farhan_CV.pdf' : selectedFile ? selectedFile.name : 'Upload File First'} • Target Template:{' '}
-                    {selectedTemplateConfig.company_name} • Lang: {targetLanguage.toUpperCase()}
+                  <p className="text-xs text-slate-400 flex items-center gap-1.5 mt-0.5">
+                    <span>Source CV: {isSampleMode ? 'Randy_Farhan_CV.pdf' : selectedFile ? selectedFile.name : 'Upload File First'}</span>
+                    <span>• Target Template: {selectedTemplateConfig.company_name}</span>
+                    {targetTemplateFile && (
+                      <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                        <FileCheck className="w-3.5 h-3.5" />
+                        ({targetTemplateFile.name})
+                      </span>
+                    )}
                   </p>
                 </div>
               </div>
