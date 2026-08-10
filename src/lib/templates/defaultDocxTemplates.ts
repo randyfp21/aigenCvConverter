@@ -14,12 +14,10 @@ import {
 } from 'docx';
 
 /**
- * Creates a clean, beautifully formatted corporate DOCX template with:
- * - Top-Right Company Logo & Code Header
- * - Styled Separator Lines with customized separator color
- * - Candidate Name, Role & Years of Experience
- * - Structured Sections ({about_me}, {professional_experience}, {technical_qualification}, {education}, {certifications})
- * - Bottom Page Footer (Company Name, Address, Website, Phone)
+ * Creates an official target DOCX template buffer containing exact placeholders:
+ * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
+ * {professional_experience}, {technical_qualification}, {education}, {certifications},
+ * {company_name}, {company_address}, {company_website}, {company_phone}
  */
 export async function createOfficialCompanyDocxTemplate(
   companyName: string,
@@ -30,7 +28,6 @@ export async function createOfficialCompanyDocxTemplate(
   companyPhone = '+62 21 500 8000'
 ): Promise<Buffer> {
   const cleanPrimary = (primaryColorHex || '#0F172A').replace('#', '');
-  const cleanCode = (companyCode || 'PT').toUpperCase();
 
   const doc = new Document({
     sections: [
@@ -54,7 +51,7 @@ export async function createOfficialCompanyDocxTemplate(
                   new TableRow({
                     children: [
                       new TableCell({
-                        width: { size: 60, type: WidthType.PERCENTAGE },
+                        width: { size: 70, type: WidthType.PERCENTAGE },
                         borders: {
                           top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                           bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
@@ -76,7 +73,7 @@ export async function createOfficialCompanyDocxTemplate(
                         ],
                       }),
                       new TableCell({
-                        width: { size: 40, type: WidthType.PERCENTAGE },
+                        width: { size: 30, type: WidthType.PERCENTAGE },
                         borders: {
                           top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                           bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
@@ -88,7 +85,7 @@ export async function createOfficialCompanyDocxTemplate(
                             alignment: AlignmentType.RIGHT,
                             children: [
                               new TextRun({
-                                text: `[ ${cleanCode} ]`,
+                                text: `LOGO`,
                                 bold: true,
                                 size: 16,
                                 color: '0284C7',
@@ -123,79 +120,7 @@ export async function createOfficialCompanyDocxTemplate(
           }),
         },
         children: [
-          // Top Header Banner with Logo & Company Info
-          new Table({
-            width: { size: 100, type: WidthType.PERCENTAGE },
-            rows: [
-              new TableRow({
-                children: [
-                  new TableCell({
-                    width: { size: 70, type: WidthType.PERCENTAGE },
-                    shading: { fill: cleanPrimary },
-                    margins: { top: 220, bottom: 220, left: 300, right: 300 },
-                    borders: {
-                      top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                      bottom: { style: BorderStyle.SINGLE, size: 12, color: '0284C7' },
-                      left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                      right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                    },
-                    children: [
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: '{company_name}',
-                            bold: true,
-                            size: 26,
-                            color: 'FFFFFF',
-                            font: 'Calibri',
-                          }),
-                        ],
-                      }),
-                      new Paragraph({
-                        children: [
-                          new TextRun({
-                            text: '{company_address}  |  {company_website}  |  {company_phone}',
-                            size: 16,
-                            color: 'E2E8F0',
-                            font: 'Calibri',
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                  new TableCell({
-                    width: { size: 30, type: WidthType.PERCENTAGE },
-                    shading: { fill: cleanPrimary },
-                    margins: { top: 220, bottom: 220, left: 200, right: 200 },
-                    borders: {
-                      top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                      bottom: { style: BorderStyle.SINGLE, size: 12, color: '0284C7' },
-                      left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                      right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                    },
-                    children: [
-                      new Paragraph({
-                        alignment: AlignmentType.RIGHT,
-                        children: [
-                          new TextRun({
-                            text: `[ LOGO ${cleanCode} ]`,
-                            bold: true,
-                            size: 20,
-                            color: '38BDF8',
-                            font: 'Calibri',
-                          }),
-                        ],
-                      }),
-                    ],
-                  }),
-                ],
-              }),
-            ],
-          }),
-
-          new Paragraph({ text: '', spacing: { after: 200 } }),
-
-          // Candidate Name & Role Placeholders
+          // Candidate Name & Role Header
           new Paragraph({
             children: [
               new TextRun({

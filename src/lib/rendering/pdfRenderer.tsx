@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, renderToBuffer } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Image, renderToBuffer } from '@react-pdf/renderer';
 import { CanonicalCV, CompanyTemplateConfig, TargetLanguage } from '@/types/cv';
 
 export async function generatePdfBuffer(
@@ -7,11 +7,33 @@ export async function generatePdfBuffer(
   template: CompanyTemplateConfig,
   lang: TargetLanguage
 ): Promise<Buffer> {
-  const { theme, layout, company_name, code, company_address, company_website, company_phone } = template;
+  const { theme, layout, company_name, company_address, company_website, company_phone, logo_svg, logo_url } = template;
   const titles = layout.section_titles;
 
   const sepColor = theme.separator_color || theme.secondary_color || '#0284C7';
   const primaryColor = theme.primary_color || '#0F172A';
+
+  // Helper to extract or base64 encode company logo image src for @react-pdf/renderer
+  const getLogoSrc = (): string | null => {
+    if (logo_url && logo_url.startsWith('data:image')) {
+      return logo_url;
+    }
+    const hrefMatch = logo_svg?.match(/href=["'](data:image\/[^"']+)["']/);
+    if (hrefMatch && hrefMatch[1]) {
+      return hrefMatch[1];
+    }
+    if (logo_svg && logo_svg.trim().startsWith('<svg')) {
+      try {
+        const base64Svg = Buffer.from(logo_svg).toString('base64');
+        return `data:image/svg+xml;base64,${base64Svg}`;
+      } catch (e) {
+        console.warn('Failed to base64 encode logo_svg:', e);
+      }
+    }
+    return null;
+  };
+
+  const logoSrc = getLogoSrc();
 
   const styles = StyleSheet.create({
     page: {
@@ -37,26 +59,13 @@ export async function generatePdfBuffer(
     },
     headerRight: {
       alignItems: 'flex-end',
-    },
-    companyBadge: {
-      backgroundColor: primaryColor,
-      paddingHorizontal: 10,
-      paddingVertical: 6,
-      borderRadius: 6,
-      alignItems: 'center',
       justifyContent: 'center',
     },
-    companyBadgeText: {
-      fontSize: 11,
-      fontWeight: 'bold',
-      color: '#FFFFFF',
-      textTransform: 'uppercase',
-    },
-    companyCodeText: {
-      fontSize: 8,
-      color: sepColor,
-      marginTop: 2,
-      fontWeight: 'bold',
+    logoImage: {
+      width: 52,
+      height: 52,
+      objectFit: 'contain',
+      borderRadius: 6,
     },
     name: {
       fontSize: 22,
@@ -157,7 +166,7 @@ export async function generatePdfBuffer(
   const PdfDocument = (
     <Document title={`Candidate Profile - ${cv.personal_information.full_name}`}>
       <Page size="A4" style={styles.page}>
-        {/* Top Header with Candidate Info Left & Top-Right Company Logo Badge */}
+        {/* Top Header with Candidate Info Left & Top-Right Company Logo */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
             <Text style={styles.name}>{cv.personal_information.full_name || 'Candidate Profile'}</Text>
@@ -167,10 +176,24 @@ export async function generatePdfBuffer(
           </View>
 
           <View style={styles.headerRight}>
-            <View style={styles.companyBadge}>
-              <Text style={styles.companyBadgeText}>{company_name}</Text>
-            </View>
-            <Text style={styles.companyCodeText}>[{code || 'PT'}] OFFICIAL PROFILE</Text>
+            {logoSrc ? (
+              <Image src={logoSrc} style={styles.logoImage} />
+            ) : (
+              <View
+                style={{
+                  width: 48,
+                  height: 48,
+                  backgroundColor: primaryColor,
+                  borderRadius: 6,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>
+                  {company_name.substring(0, 4)}
+                </Text>
+              </View>
+            )}
           </View>
         </View>
 
