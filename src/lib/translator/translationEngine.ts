@@ -1,7 +1,7 @@
 import { CanonicalCV, TargetLanguage } from '@/types/cv';
 
 /**
- * Protected Technical & Proper Name Regexes
+ * Protected Technical & Proper Name List
  * Ensures proper nouns, technology stacks, certifications, and company names are NEVER modified or mistranslated.
  */
 const PROTECTED_TERMS = [
@@ -28,46 +28,72 @@ const PROTECTED_TERMS = [
   'Spring Boot',
   'TailwindCSS',
   'AWS Certified Solutions Architect',
+  'PMP',
+  'ScrumMaster',
 ];
 
 /**
- * Simple English <-> Bahasa Indonesia Translation dictionary for common resume terminology & verbs.
- * Preserves exact factual meaning while providing crisp, professional translations.
+ * Comprehensive English <-> Bahasa Indonesia Translation dictionary for common resume terminology, action verbs, & phrases.
  */
 const EN_TO_ID_DICTIONARY: Record<string, string> = {
+  'Led end-to-end': 'Memimpin secara menyeluruh',
+  'Led': 'Memimpin',
+  'Developing': 'Mengembangkan',
   'Developed': 'Mengembangkan',
   'Building': 'Membangun',
   'Built': 'Membangun',
   'Implemented': 'Mengimplementasikan',
+  'Implementing': 'Mengimplementasikan',
   'Designed': 'Merancang',
+  'Designing': 'Merancang',
   'Managed': 'Mengelola',
-  'Led': 'Memimpin',
+  'Managing': 'Mengelola',
   'Optimized': 'Mengoptimalkan',
+  'Optimizing': 'Mengoptimalkan',
   'Created': 'Membuat',
+  'Creating': 'Membuat',
   'Maintained': 'Memelihara',
+  'Maintaining': 'Memelihara',
+  'Provided': 'Menyediakan',
+  'Providing': 'Menyediakan',
+  'Automated': 'Mengotomatisasi',
+  'Automating': 'Mengotomatisasi',
+  'Ensured': 'Memastikan',
+  'Ensuring': 'Memastikan',
+  'Architected': 'Merancang Arsitektur',
+  'Spearheaded': 'Pelopor dalam memimpin',
   'Responsible for': 'Bertanggung jawab untuk',
   'System Integration': 'Integrasi Sistem',
   'Project Management': 'Manajemen Proyek',
   'Database Management': 'Manajemen Basis Data',
   'Cloud Architecture': 'Arsitektur Awan',
-  'Software Engineer': 'Software Engineer', // Job Title preserved
-  'IT Project Manager': 'IT Project Manager', // Job Title preserved
-  'IT Support Engineer': 'IT Support Engineer', // Job Title preserved
+  'Present': 'Saat Ini',
+  'Senior IT Project Manager': 'Senior IT Project Manager',
+  'IT Support Engineer': 'IT Support Engineer',
+  'Software Engineer': 'Software Engineer',
+  'Fullstack Developer': 'Fullstack Developer',
+  'Solutions Architect': 'Solutions Architect',
 };
 
 const ID_TO_EN_DICTIONARY: Record<string, string> = {
+  'Memimpin secara menyeluruh': 'Led end-to-end',
+  'Memimpin': 'Led',
   'Mengembangkan': 'Developed',
   'Membangun': 'Built',
   'Mengimplementasikan': 'Implemented',
   'Merancang': 'Designed',
   'Mengelola': 'Managed',
-  'Memimpin': 'Led',
   'Mengoptimalkan': 'Optimized',
   'Membuat': 'Created',
   'Memelihara': 'Maintained',
+  'Menyediakan': 'Provided',
+  'Mengotomatisasi': 'Automated',
+  'Memastikan': 'Ensured',
   'Bertanggung jawab atas': 'Responsible for',
+  'Bertanggung jawab untuk': 'Responsible for',
   'Integrasi Sistem': 'System Integration',
   'Manajemen Proyek': 'Project Management',
+  'Saat Ini': 'Present',
 };
 
 export function translateText(text: string, targetLang: TargetLanguage): string {
@@ -77,7 +103,6 @@ export function translateText(text: string, targetLang: TargetLanguage): string 
   const dictionary = targetLang === 'id' ? EN_TO_ID_DICTIONARY : ID_TO_EN_DICTIONARY;
 
   for (const [sourceTerm, translatedTerm] of Object.entries(dictionary)) {
-    // Replace word boundaries
     const regex = new RegExp(`\\b${sourceTerm}\\b`, 'gi');
     result = result.replace(regex, translatedTerm);
   }
@@ -87,6 +112,7 @@ export function translateText(text: string, targetLang: TargetLanguage): string 
 
 /**
  * Translates Canonical CV content while strictly preserving factual data, job titles, proper names, and technical qualifications.
+ * Ensures language consistency across all sections.
  */
 export function translateCanonicalCv(cv: CanonicalCV, targetLang: TargetLanguage): CanonicalCV {
   // Deep clone to prevent mutating source
@@ -96,18 +122,20 @@ export function translateCanonicalCv(cv: CanonicalCV, targetLang: TargetLanguage
   if (translated.summary) {
     translated.summary = translateText(translated.summary, targetLang);
   }
+  if (translated.about_me) {
+    translated.about_me = translateText(translated.about_me, targetLang);
+  }
 
-  // Translate Work Experience (Responsibilities & Projects) while preserving Company & Job Title
+  // Translate Work Experience (Responsibilities & Projects)
   translated.work_experience = translated.work_experience.map((job) => ({
     ...job,
-    // Job title & Company names are explicitly PRESERVED without change
     position: job.position,
     company: job.company,
+    end_date: job.end_date === 'Present' && targetLang === 'id' ? 'Saat Ini' : job.end_date === 'Saat Ini' && targetLang === 'en' ? 'Present' : job.end_date,
     responsibilities: job.responsibilities.map((resp) => translateText(resp, targetLang)),
     projects: job.projects.map((proj) => ({
       ...proj,
       description: translateText(proj.description, targetLang),
-      // Technologies & Roles preserved strictly
       technologies: proj.technologies,
     })),
   }));

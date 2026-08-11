@@ -90,13 +90,14 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // Extract & Qualify Canonical CV Schema using Gemini AI & File Upload API
+      // Extract & Qualify Canonical CV Schema using Gemini AI & File Upload API (with strict Target Language directive)
       extractionResult = await extractCvWithGeminiAI(
         parsedDoc.rawText,
         uploadedFileBuffer,
         file.name,
         file.type || 'application/pdf',
-        customInstructions
+        customInstructions,
+        language
       );
 
       canonicalCv = extractionResult.cv;
@@ -108,7 +109,7 @@ export async function POST(req: NextRequest) {
       targetTemplateBuffer = Buffer.from(await templateFile.arrayBuffer());
     }
 
-    // Translate if requested
+    // Translate & sanitize language consistency
     const processedCv = translateCanonicalCv(canonicalCv, language);
 
     // Get Target Company Template Config (Merge with client-customized templateConfig if provided)

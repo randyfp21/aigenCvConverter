@@ -1,4 +1,4 @@
-import { CanonicalCV } from '@/types/cv';
+import { CanonicalCV, TargetLanguage } from '@/types/cv';
 import { extractCanonicalCvFromText as ruleBasedFallbackExtract } from './cvExtractor';
 
 const GEMINI_API_KEY =
@@ -100,14 +100,15 @@ export async function uploadBufferToGemini(
 /**
  * Extracts structured candidate data using Gemini AI (supports direct File API & text fallback)
  * Optionally incorporates user interview notes or target role transformations.
- * Classifies Technical Qualifications into categorized groups (frontend, backend, infrastructure, tools, etc.).
+ * Enforces 100% target language consistency (Bahasa Indonesia vs. English).
  */
 export async function extractCvWithGeminiAI(
   rawCvText: string,
   fileBuffer?: Buffer,
   fileName?: string,
   mimeType?: string,
-  customInstructions?: string
+  customInstructions?: string,
+  targetLanguage: TargetLanguage = 'en'
 ): Promise<GeminiExtractionResult> {
   const statusLog: string[] = [];
   const modelsToTry = [
@@ -117,7 +118,8 @@ export async function extractCvWithGeminiAI(
     'gemini-flash-latest',
   ];
 
-  statusLog.push('Memulai proses ekstraksi & kualifikasi kandidat via Google Gemini AI...');
+  const targetLangLabel = targetLanguage === 'id' ? 'Bahasa Indonesia (Baku & Formal)' : 'English (Executive Corporate Standard)';
+  statusLog.push(`Memulai proses ekstraksi & kualifikasi kandidat via Google Gemini AI (Target Bahasa: ${targetLangLabel})...`);
 
   let customPromptBlock = '';
   if (customInstructions && customInstructions.trim().length > 0) {
@@ -139,6 +141,18 @@ You are an Expert AI HR Specialist and Senior CV Analyst.
 Analyze the provided candidate CV (file or text) and produce a fully qualified, structured JSON payload.
 ${customPromptBlock}
 
+CRITICAL LANGUAGE TRANSLATION DIRECTIVE:
+The user explicitly requested the output CV document to be ENTIRELY in: **${targetLangLabel}**.
+
+MANDATORY RULES FOR LANGUAGE CONSISTENCY:
+1. You MUST generate ALL human-readable narrative text (role title, years of experience, about_me / executive summary, work_experience responsibilities, project descriptions, education degree, certification issuer) FULLY AND UNIFORMLY in ${targetLangLabel}.
+2. DO NOT MIX LANGUAGES WITHIN SENTENCES. If the source CV is in Bahasa Indonesia and target language is English, translate EVERY sentence and responsibility bullet point into professional corporate English. If the source CV is in English and target language is Bahasa Indonesia, translate EVERY sentence and responsibility bullet point into formal Bahasa Indonesia.
+3. STRICT PROTECTED UNTOUCHABLE ENTITIES (DO NOT TRANSLATE THESE):
+   - Company names (e.g. "PT Bank ABC", "Shopee", "Nusantara Cloud Tech")
+   - Technical stack & tool names (e.g. "Golang", "TypeScript", "React", "PostgreSQL", "Kafka", "Docker", "Kubernetes", "AWS", "Python", "Java", "CI/CD")
+   - Official certification names (e.g. "AWS Certified Solutions Architect", "Project Management Professional (PMP)", "Certified ScrumMaster")
+   - Live URLs, email addresses, and portfolio links.
+
 SPECIAL RULES FOR PORTFOLIO & PROJECTS:
 - Extract all Portfolio Links, GitHub, Behance, Dribbble, LinkedIn, or Personal Portfolio URLs. DO NOT OMIT THEM.
 - Thoroughly extract ALL Project Experiences (Nama Proyek, Deskripsi, Teknologi/Tech Stack, Role, Link Proyek) mentioned under work history or dedicated project sections.
@@ -151,44 +165,44 @@ REQUIRED JSON SCHEMA & RULES:
    - location: string
    - linkedin: string (Candidate LinkedIn URL if present)
    - portfolio_url: string (Candidate Portfolio, GitHub, Behance, or Personal Website link)
-2. role: string (Candidate's primary role e.g., "Senior Fullstack JavaScript Developer", "IT Project Manager")
-3. years_of_experience: string (Calculated total years & seniority string e.g., "Senior (7 Years)", "Middle (4 Years)", or "Junior (2 Years)")
+2. role: string (Candidate's primary role in ${targetLangLabel} e.g., "Senior Fullstack JavaScript Developer", "IT Project Manager")
+3. years_of_experience: string (Calculated total years & seniority string in ${targetLangLabel} e.g., "Senior (7 Years)" or "Senior (7 Tahun)")
 4. seniority_level: "Junior" | "Middle" | "Senior" (Junior for 1-3 years, Middle for 3-5 years, Senior for 5+ years)
 5. total_years_num: number (Total years calculated from work history)
-6. about_me: string (CONCISE 2-3 sentence executive summary highlighting candidate role, total experience, core tech stack, and key impact)
-7. summary: string (Same concise text as about_me)
+6. about_me: string (CONCISE 2-3 sentence executive summary in ${targetLangLabel} highlighting candidate role, total experience, core tech stack, and key impact)
+7. summary: string (Same concise text as about_me in ${targetLangLabel})
 8. work_experience: Array of objects containing:
    - id: string
-   - company: string (Company Name e.g., "PT Aigen Global Teknologi", "Shopee", "PT Gudang Solusi")
+   - company: string (Company Name preserved e.g., "PT Aigen Global Teknologi", "Shopee")
    - position: string (Job Title / Position)
    - location: string
    - start_date: string (e.g., "Jan 2021" or "2021")
-   - end_date: string (e.g., "Present" or "Dec 2023")
+   - end_date: string (e.g., "${targetLanguage === 'id' ? 'Saat Ini' : 'Present'}" or "Dec 2023")
    - is_current: boolean
-   - responsibilities: Array of strings (Full bullet point responsibilities and achievements extracted from source CV)
+   - responsibilities: Array of strings (Full bullet point responsibilities and achievements translated 100% into ${targetLangLabel})
    - projects: Array of objects containing:
      - name: string (Project Name)
-     - description: string (Project Description & Impact)
-     - technologies: Array of strings (Tech stack used in project e.g. ["React", "Node.js", "PostgreSQL"])
+     - description: string (Project Description & Impact in ${targetLangLabel})
+     - technologies: Array of strings (Tech stack preserved e.g. ["React", "Node.js", "PostgreSQL"])
      - role: string (Role in project)
      - link: string (Project live demo or repo link if present)
 9. key_projects: Array of objects containing:
    - name: string
-   - description: string
+   - description: string (in ${targetLangLabel})
    - technologies: Array of strings
    - role: string
    - link: string
-10. technical_qualifications: Array of strings (All technical skills, programming languages, tools, frameworks, databases e.g., ["Golang", "TypeScript", "React", "PostgreSQL", "Kafka", "Docker"])
+10. technical_qualifications: Array of strings (All technical skills e.g., ["Golang", "TypeScript", "React", "PostgreSQL", "Kafka", "Docker"])
 11. categorized_qualifications: Object classifying technical skills into distinct groups:
-   - frontend: Array of strings (Frontend technologies e.g. ["React", "Next.js", "TypeScript", "TailwindCSS", "Vue.js", "HTML/CSS"])
-   - backend: Array of strings (Backend & API technologies e.g. ["Golang", "Node.js", "Express", "Python", "Java", "Microservices", "REST API"])
-   - infrastructure: Array of strings (DevOps, Cloud, & Infrastructure e.g. ["Docker", "Kubernetes", "AWS", "GCP", "Kafka", "CI/CD", "Linux"])
-   - databases_tools: Array of strings (Databases & Development Tools e.g. ["PostgreSQL", "MySQL", "Redis", "Git", "Jira"])
-   - others: Array of strings (Methodologies & General Skills e.g. ["Agile Scrum", "System Architecture", "ISO-27001"])
+   - frontend: Array of strings (e.g. ["React", "Next.js", "TypeScript", "TailwindCSS", "Vue.js"])
+   - backend: Array of strings (e.g. ["Golang", "Node.js", "Express", "Python", "Java", "Microservices"])
+   - infrastructure: Array of strings (e.g. ["Docker", "Kubernetes", "AWS", "GCP", "Kafka", "CI/CD"])
+   - databases_tools: Array of strings (e.g. ["PostgreSQL", "MySQL", "Redis", "Git", "Jira"])
+   - others: Array of strings (e.g. ["Agile Scrum", "System Architecture", "ISO-27001"])
 12. education: Array of objects containing:
    - id: string
    - institution: string (University / Institute Name)
-   - degree: string (Degree e.g., "Bachelor of Computer Science", "S1 Teknik Informatika")
+   - degree: string (Degree e.g., "Bachelor of Computer Science" or "S1 Teknik Informatika")
    - field_of_study: string
 13. certifications: Array of objects containing:
    - id: string
@@ -367,7 +381,7 @@ ${rawCvText}
         },
       };
 
-      const successMsg = `✅ Analisis CV sukses menggunakan model '${modelName}'.`;
+      const successMsg = `✅ Analisis & penerjemahan CV sukses menggunakan model '${modelName}'.`;
       console.log(successMsg);
       statusLog.push(successMsg);
 
