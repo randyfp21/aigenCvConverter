@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CompanyTemplateConfig } from '@/types/cv';
-import { X, Building2, Palette, MapPin, Phone, Globe, Upload, Sparkles } from 'lucide-react';
+import { X, Building2, Palette, MapPin, Phone, Globe, Upload, Sparkles, Type, Frame } from 'lucide-react';
 
 interface AddCompanyModalProps {
   isOpen: boolean;
@@ -24,6 +24,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
   const [primaryColor, setPrimaryColor] = useState('#0F172A');
   const [separatorColor, setSeparatorColor] = useState('#0284C7');
   const [secondaryColor, setSecondaryColor] = useState('#38BDF8');
+  const [fontFamily, setFontFamily] = useState('Calibri');
+  const [showPageBorder, setShowPageBorder] = useState<boolean>(true);
+  const [pageBorderColor, setPageBorderColor] = useState('#000000');
+  const [pageBorderWidth, setPageBorderWidth] = useState<number>(1);
   const [logoSvg, setLogoSvg] = useState<string>('');
   const [logoUrl, setLogoUrl] = useState<string>('');
 
@@ -40,6 +44,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       setPrimaryColor(initialData.theme?.primary_color || '#0F172A');
       setSeparatorColor(initialData.theme?.separator_color || initialData.theme?.secondary_color || '#0284C7');
       setSecondaryColor(initialData.theme?.secondary_color || '#38BDF8');
+      setFontFamily(initialData.theme?.font_family || 'Calibri');
+      setShowPageBorder(initialData.theme?.show_page_border ?? true);
+      setPageBorderColor(initialData.theme?.page_border_color || '#000000');
+      setPageBorderWidth(initialData.theme?.page_border_width || 1);
       setLogoSvg(initialData.logo_svg || '');
       setLogoUrl(initialData.logo_url || '');
     } else {
@@ -52,6 +60,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
       setPrimaryColor('#0F172A');
       setSeparatorColor('#0284C7');
       setSecondaryColor('#38BDF8');
+      setFontFamily('Calibri');
+      setShowPageBorder(true);
+      setPageBorderColor('#000000');
+      setPageBorderWidth(1);
       setLogoSvg('');
       setLogoUrl('');
     }
@@ -112,7 +124,10 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
         separator_color: separatorColor,
         text_color: '#1F2937',
         background_color: '#FFFFFF',
-        font_family: 'Inter, Helvetica, Arial, sans-serif',
+        font_family: fontFamily,
+        show_page_border: showPageBorder,
+        page_border_color: pageBorderColor,
+        page_border_width: pageBorderWidth,
       },
       layout: initialData?.layout || {
         header_style: 'standard',
@@ -155,7 +170,7 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
               <h3 className="text-base font-extrabold text-slate-900 dark:text-white">
                 {initialData ? `Edit Detail ${initialData.company_name}` : 'Tambah Perusahaan / PT Baru'}
               </h3>
-              <p className="text-xs text-slate-600 dark:text-slate-400">Kustomisasi logo, footer (alamat, website, telp), &amp; warna separator</p>
+              <p className="text-xs text-slate-600 dark:text-slate-400">Kustomisasi logo, footer, warna, font, &amp; border outer CV</p>
             </div>
           </div>
           <button
@@ -239,6 +254,75 @@ export const AddCompanyModal: React.FC<AddCompanyModalProps> = ({
                 className="w-full px-3.5 py-2.5 rounded-2xl bg-white/60 dark:bg-white/10 border border-white/60 dark:border-white/10 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-blue-500 shadow-sm font-semibold backdrop-blur-md"
               />
             </div>
+          </div>
+
+          {/* Opsi Pemilihan Font Document CV */}
+          <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-white/60 dark:border-white/10 space-y-2 shadow-sm backdrop-blur-2xl">
+            <label className="block font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <Type className="w-4 h-4 text-blue-500" />
+              <span>Pilihan Jenis Font CV (Document Font Family)</span>
+            </label>
+            <select
+              value={fontFamily}
+              onChange={(e) => setFontFamily(e.target.value)}
+              className="w-full px-3.5 py-2.5 rounded-2xl bg-white/60 dark:bg-slate-900 border border-white/60 dark:border-white/10 text-slate-900 dark:text-white font-bold focus:outline-none focus:border-blue-500 backdrop-blur-md shadow-sm"
+            >
+              <option value="Calibri">Calibri (Standard Executive - Default Word)</option>
+              <option value="Helvetica">Helvetica / Inter (Modern Minimalist)</option>
+              <option value="Arial">Arial / Roboto (Clean Corporate)</option>
+              <option value="Times New Roman">Times New Roman (Classic Formal Serif)</option>
+              <option value="Georgia">Georgia (Executive Serif)</option>
+            </select>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+              Font yang dipilih akan diterapkan secara konsisten pada output PDF dan DOCX.
+            </p>
+          </div>
+
+          {/* Opsi Border Hitam / Warna Tipis di Edge CV */}
+          <div className="bg-white/40 dark:bg-white/5 p-4 rounded-2xl border border-white/60 dark:border-white/10 space-y-3 shadow-sm backdrop-blur-2xl">
+            <div className="flex items-center justify-between">
+              <label className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5 cursor-pointer">
+                <Frame className="w-4 h-4 text-emerald-500" />
+                <span>Gunakan Border Outer CV (Border Tipis Pinggir Dokumen)</span>
+              </label>
+              <input
+                type="checkbox"
+                checked={showPageBorder}
+                onChange={(e) => setShowPageBorder(e.target.checked)}
+                className="w-5 h-5 rounded-lg border-slate-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+              />
+            </div>
+
+            {showPageBorder && (
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-white/40 dark:border-white/10">
+                <div>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Ketebalan Border (pt)</label>
+                  <select
+                    value={pageBorderWidth}
+                    onChange={(e) => setPageBorderWidth(Number(e.target.value))}
+                    className="w-full px-3 py-1.5 rounded-xl bg-white/60 dark:bg-slate-900 border border-white/60 dark:border-white/10 text-slate-900 dark:text-white font-mono text-xs font-bold"
+                  >
+                    <option value={0.5}>0.5 pt (Sangat Tipis)</option>
+                    <option value={1}>1.0 pt (Standar Presisi)</option>
+                    <option value={1.5}>1.5 pt (Sedang)</option>
+                    <option value={2}>2.0 pt (Tebal Tegas)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] text-slate-600 dark:text-slate-400 mb-1 font-semibold">Warna Border Outer</label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="color"
+                      value={pageBorderColor}
+                      onChange={(e) => setPageBorderColor(e.target.value)}
+                      className="w-8 h-8 rounded-lg border border-white/60 dark:border-white/20 bg-transparent cursor-pointer"
+                    />
+                    <span className="text-[10px] text-slate-800 dark:text-slate-200 font-mono font-bold">{pageBorderColor}</span>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div>

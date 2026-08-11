@@ -105,6 +105,9 @@ export interface CompanyTheme {
   text_color: string;
   background_color: string;
   font_family: string;
+  show_page_border?: boolean;
+  page_border_color?: string;
+  page_border_width?: number;
 }
 
 export interface CompanyTemplateConfig {

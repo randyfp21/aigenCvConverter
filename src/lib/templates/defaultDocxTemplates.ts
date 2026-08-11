@@ -14,7 +14,8 @@ import {
 } from 'docx';
 
 /**
- * Creates an official target DOCX template buffer with color block footer on EVERY page:
+ * Creates an official target DOCX template buffer with color block footer, selected font_family,
+ * and outer page border option:
  * {Nama_lengkap}, {role}, {about_me}, {years_of_experience},
  * {professional_experience}, {technical_qualification}, {education}, {certifications},
  * {company_name}, {company_address}, {company_website}, {company_phone}
@@ -25,9 +26,26 @@ export async function createOfficialCompanyDocxTemplate(
   primaryColorHex: string,
   companyAddress = 'Jakarta, Indonesia',
   companyWebsite = 'www.company.com',
-  companyPhone = '+62 21 500 8000'
+  companyPhone = '+62 21 500 8000',
+  fontFamily = 'Calibri',
+  showPageBorder = false,
+  pageBorderColor = '#000000',
+  pageBorderWidth = 1
 ): Promise<Buffer> {
   const cleanPrimary = (primaryColorHex || '#0F172A').replace('#', '');
+  const cleanBorderColor = (pageBorderColor || '#000000').replace('#', '');
+  const borderSize = Math.round((pageBorderWidth || 1) * 8); // eighths of a point
+
+  const pageBordersConfig = showPageBorder
+    ? {
+        pageBorders: {
+          pageBorderTop: { style: BorderStyle.SINGLE, size: borderSize, color: cleanBorderColor },
+          pageBorderBottom: { style: BorderStyle.SINGLE, size: borderSize, color: cleanBorderColor },
+          pageBorderLeft: { style: BorderStyle.SINGLE, size: borderSize, color: cleanBorderColor },
+          pageBorderRight: { style: BorderStyle.SINGLE, size: borderSize, color: cleanBorderColor },
+        },
+      }
+    : {};
 
   const doc = new Document({
     sections: [
@@ -40,6 +58,7 @@ export async function createOfficialCompanyDocxTemplate(
               left: 540,
               right: 540,
             },
+            ...pageBordersConfig,
           },
         },
         headers: {
@@ -66,7 +85,7 @@ export async function createOfficialCompanyDocxTemplate(
                                 bold: true,
                                 size: 16,
                                 color: cleanPrimary,
-                                font: 'Calibri',
+                                font: fontFamily,
                               }),
                             ],
                           }),
@@ -89,7 +108,7 @@ export async function createOfficialCompanyDocxTemplate(
                                 bold: true,
                                 size: 14,
                                 color: '0284C7',
-                                font: 'Calibri',
+                                font: fontFamily,
                               }),
                             ],
                           }),
@@ -128,7 +147,7 @@ export async function createOfficialCompanyDocxTemplate(
                                 bold: true,
                                 size: 15,
                                 color: 'FFFFFF',
-                                font: 'Calibri',
+                                font: fontFamily,
                               }),
                             ],
                           }),
@@ -150,7 +169,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 32,
                 color: cleanPrimary,
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             spacing: { after: 60 },
@@ -163,7 +182,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 20,
                 color: '0284C7',
-                font: 'Calibri',
+                font: fontFamily,
               }),
               new TextRun({
                 text: '  •  ',
@@ -175,7 +194,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 18,
                 color: '10B981',
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             spacing: { after: 160 },
@@ -189,7 +208,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 20,
                 color: cleanPrimary,
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0284C7' } },
@@ -201,7 +220,7 @@ export async function createOfficialCompanyDocxTemplate(
                 text: '{about_me}',
                 size: 18,
                 color: '1E293B',
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             spacing: { after: 160 },
@@ -215,7 +234,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 20,
                 color: cleanPrimary,
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0284C7' } },
@@ -227,7 +246,7 @@ export async function createOfficialCompanyDocxTemplate(
                 text: '{professional_experience}',
                 size: 18,
                 color: '1E293B',
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             spacing: { after: 160 },
@@ -241,7 +260,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 20,
                 color: cleanPrimary,
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             border: { bottom: { style: BorderStyle.SINGLE, size: 6, color: '0284C7' } },
@@ -254,7 +273,7 @@ export async function createOfficialCompanyDocxTemplate(
                 bold: true,
                 size: 18,
                 color: '0369A1',
-                font: 'Calibri',
+                font: fontFamily,
               }),
             ],
             spacing: { after: 160 },
@@ -282,7 +301,7 @@ export async function createOfficialCompanyDocxTemplate(
                             bold: true,
                             size: 18,
                             color: cleanPrimary,
-                            font: 'Calibri',
+                            font: fontFamily,
                           }),
                         ],
                         border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '94A3B8' } },
@@ -294,7 +313,7 @@ export async function createOfficialCompanyDocxTemplate(
                             text: '{education}',
                             size: 17,
                             color: '334155',
-                            font: 'Calibri',
+                            font: fontFamily,
                           }),
                         ],
                       }),
@@ -316,7 +335,7 @@ export async function createOfficialCompanyDocxTemplate(
                             bold: true,
                             size: 18,
                             color: cleanPrimary,
-                            font: 'Calibri',
+                            font: fontFamily,
                           }),
                         ],
                         border: { bottom: { style: BorderStyle.SINGLE, size: 4, color: '94A3B8' } },
@@ -328,7 +347,7 @@ export async function createOfficialCompanyDocxTemplate(
                             text: '{certifications}',
                             size: 17,
                             color: '334155',
-                            font: 'Calibri',
+                            font: fontFamily,
                           }),
                         ],
                       }),

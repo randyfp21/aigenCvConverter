@@ -27,8 +27,9 @@ export async function GET() {
             id, company_name, code, tagline, description, logo_svg, logo_url,
             company_address, company_website, company_phone,
             primary_color, secondary_color, accent_color, separator_color, text_color, background_color, font_family,
+            show_page_border, page_border_color, page_border_width,
             layout_config, is_custom_uploaded
-          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19)
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
           ON CONFLICT (id) DO NOTHING`,
           [
             tmpl.id,
@@ -47,7 +48,10 @@ export async function GET() {
             tmpl.theme.separator_color || tmpl.theme.secondary_color,
             tmpl.theme.text_color,
             tmpl.theme.background_color,
-            tmpl.theme.font_family,
+            tmpl.theme.font_family || 'Calibri',
+            tmpl.theme.show_page_border ?? true,
+            tmpl.theme.page_border_color || '#000000',
+            tmpl.theme.page_border_width || 1,
             JSON.stringify(tmpl.layout),
             Boolean(tmpl.isCustomUploaded),
           ]
@@ -80,7 +84,10 @@ export async function GET() {
         separator_color: r.separator_color,
         text_color: r.text_color,
         background_color: r.background_color,
-        font_family: r.font_family,
+        font_family: r.font_family || 'Calibri',
+        show_page_border: r.show_page_border ?? true,
+        page_border_color: r.page_border_color || '#000000',
+        page_border_width: Number(r.page_border_width) || 1,
       },
       layout: typeof r.layout_config === 'string' ? JSON.parse(r.layout_config) : r.layout_config,
     }));
@@ -122,8 +129,9 @@ export async function POST(req: NextRequest) {
         id, company_name, code, tagline, description, logo_svg, logo_url,
         company_address, company_website, company_phone,
         primary_color, secondary_color, accent_color, separator_color, text_color, background_color, font_family,
+        show_page_border, page_border_color, page_border_width,
         layout_config, is_custom_uploaded, updated_at
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, CURRENT_TIMESTAMP)
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, CURRENT_TIMESTAMP)
       ON CONFLICT (id) DO UPDATE SET
         company_name = EXCLUDED.company_name,
         code = EXCLUDED.code,
@@ -141,6 +149,9 @@ export async function POST(req: NextRequest) {
         text_color = EXCLUDED.text_color,
         background_color = EXCLUDED.background_color,
         font_family = EXCLUDED.font_family,
+        show_page_border = EXCLUDED.show_page_border,
+        page_border_color = EXCLUDED.page_border_color,
+        page_border_width = EXCLUDED.page_border_width,
         layout_config = EXCLUDED.layout_config,
         is_custom_uploaded = EXCLUDED.is_custom_uploaded,
         updated_at = CURRENT_TIMESTAMP
@@ -164,7 +175,10 @@ export async function POST(req: NextRequest) {
       body.theme?.separator_color || body.theme?.secondary_color || '#0284C7',
       body.theme?.text_color || '#1F2937',
       body.theme?.background_color || '#FFFFFF',
-      body.theme?.font_family || 'Inter, sans-serif',
+      body.theme?.font_family || 'Calibri',
+      body.theme?.show_page_border ?? true,
+      body.theme?.page_border_color || '#000000',
+      body.theme?.page_border_width || 1,
       JSON.stringify(body.layout || {}),
       Boolean(body.isCustomUploaded),
     ]);

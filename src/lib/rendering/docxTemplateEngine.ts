@@ -20,7 +20,11 @@ export async function renderDocxFromTemplate(
       template.theme.primary_color || '#0F172A',
       template.company_address,
       template.company_website,
-      template.company_phone
+      template.company_phone,
+      template.theme.font_family || 'Calibri',
+      template.theme.show_page_border ?? true,
+      template.theme.page_border_color || '#000000',
+      template.theme.page_border_width || 1
     );
   }
 
@@ -247,7 +251,11 @@ export async function renderDocxFromTemplate(
       template.theme.primary_color || '#0F172A',
       template.company_address,
       template.company_website,
-      template.company_phone
+      template.company_phone,
+      template.theme.font_family || 'Calibri',
+      template.theme.show_page_border ?? true,
+      template.theme.page_border_color || '#000000',
+      template.theme.page_border_width || 1
     );
 
     const zip = new PizZip(fallbackTemplate);

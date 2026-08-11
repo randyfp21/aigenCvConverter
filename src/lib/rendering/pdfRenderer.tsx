@@ -13,6 +13,20 @@ export async function generatePdfBuffer(
   const sepColor = theme.separator_color || theme.secondary_color || '#0284C7';
   const primaryColor = theme.primary_color || '#0F172A';
 
+  // Map user-selected font_family to valid standard PDF fonts
+  const getPdfFontFamily = (): string => {
+    const family = (theme.font_family || '').toLowerCase();
+    if (family.includes('times') || family.includes('georgia') || family.includes('serif')) {
+      return 'Times-Roman';
+    }
+    if (family.includes('courier') || family.includes('mono')) {
+      return 'Courier';
+    }
+    return 'Helvetica';
+  };
+
+  const pdfFont = getPdfFontFamily();
+
   // Helper to extract or base64 encode company logo image src for @react-pdf/renderer
   const getLogoSrc = (): string | null => {
     if (logo_url && logo_url.startsWith('data:image')) {
@@ -41,10 +55,19 @@ export async function generatePdfBuffer(
       paddingTop: 28,
       paddingBottom: 44,
       paddingHorizontal: 32,
-      fontFamily: 'Helvetica',
+      fontFamily: pdfFont,
       fontSize: 9.5,
       color: theme.text_color || '#1F2937',
       backgroundColor: '#FFFFFF',
+    },
+    pageBorder: {
+      position: 'absolute',
+      top: 10,
+      bottom: 10,
+      left: 10,
+      right: 10,
+      borderWidth: theme.page_border_width || 1,
+      borderColor: theme.page_border_color || '#000000',
     },
     headerRow: {
       flexDirection: 'row',
@@ -188,6 +211,11 @@ export async function generatePdfBuffer(
   const PdfDocument = (
     <Document title={`Candidate Profile - ${cv.personal_information.full_name}`}>
       <Page size="A4" style={styles.page}>
+        {/* Optional Outer Page Border Box */}
+        {theme.show_page_border && (
+          <View style={styles.pageBorder} fixed />
+        )}
+
         {/* Compact Header: Candidate Info Left & Top-Right Company Logo */}
         <View style={styles.headerRow}>
           <View style={styles.headerLeft}>
