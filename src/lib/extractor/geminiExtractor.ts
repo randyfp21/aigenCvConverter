@@ -100,6 +100,7 @@ export async function uploadBufferToGemini(
 /**
  * Extracts structured candidate data using Gemini AI (supports direct File API & text fallback)
  * Optionally incorporates user interview notes or target role transformations.
+ * Classifies Technical Qualifications into categorized groups (frontend, backend, infrastructure, tools, etc.).
  */
 export async function extractCvWithGeminiAI(
   rawCvText: string,
@@ -178,12 +179,18 @@ REQUIRED JSON SCHEMA & RULES:
    - role: string
    - link: string
 10. technical_qualifications: Array of strings (All technical skills, programming languages, tools, frameworks, databases e.g., ["Golang", "TypeScript", "React", "PostgreSQL", "Kafka", "Docker"])
-11. education: Array of objects containing:
+11. categorized_qualifications: Object classifying technical skills into distinct groups:
+   - frontend: Array of strings (Frontend technologies e.g. ["React", "Next.js", "TypeScript", "TailwindCSS", "Vue.js", "HTML/CSS"])
+   - backend: Array of strings (Backend & API technologies e.g. ["Golang", "Node.js", "Express", "Python", "Java", "Microservices", "REST API"])
+   - infrastructure: Array of strings (DevOps, Cloud, & Infrastructure e.g. ["Docker", "Kubernetes", "AWS", "GCP", "Kafka", "CI/CD", "Linux"])
+   - databases_tools: Array of strings (Databases & Development Tools e.g. ["PostgreSQL", "MySQL", "Redis", "Git", "Jira"])
+   - others: Array of strings (Methodologies & General Skills e.g. ["Agile Scrum", "System Architecture", "ISO-27001"])
+12. education: Array of objects containing:
    - id: string
    - institution: string (University / Institute Name)
    - degree: string (Degree e.g., "Bachelor of Computer Science", "S1 Teknik Informatika")
    - field_of_study: string
-12. certifications: Array of objects containing:
+13. certifications: Array of objects containing:
    - id: string
    - name: string (Certification Name e.g., "AWS Certified Solutions Architect")
    - issuer: string (Issuer e.g., "Amazon Web Services")
@@ -313,6 +320,13 @@ ${rawCvText}
         technical_qualifications: Array.isArray(parsedData.technical_qualifications)
           ? parsedData.technical_qualifications
           : [],
+        categorized_qualifications: {
+          frontend: Array.isArray(parsedData.categorized_qualifications?.frontend) ? parsedData.categorized_qualifications.frontend : [],
+          backend: Array.isArray(parsedData.categorized_qualifications?.backend) ? parsedData.categorized_qualifications.backend : [],
+          infrastructure: Array.isArray(parsedData.categorized_qualifications?.infrastructure) ? parsedData.categorized_qualifications.infrastructure : [],
+          databases_tools: Array.isArray(parsedData.categorized_qualifications?.databases_tools) ? parsedData.categorized_qualifications.databases_tools : [],
+          others: Array.isArray(parsedData.categorized_qualifications?.others) ? parsedData.categorized_qualifications.others : [],
+        },
         skills: {
           programming_languages: [],
           frameworks: [],

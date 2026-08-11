@@ -69,6 +69,12 @@ export const SAMPLE_RANDY_FARHAN_CV: CanonicalCV = {
     'Agile Scrum Project Management',
     'Microservices Design',
   ],
+  categorized_qualifications: {
+    frontend: ['React', 'Next.js', 'TypeScript', 'TailwindCSS'],
+    backend: ['Golang', 'Node.js', 'PostgreSQL', 'Kafka', 'Microservices Design'],
+    infrastructure: ['Docker', 'Kubernetes', 'AWS Cloud Architecture', 'CI/CD'],
+    others: ['Agile Scrum Project Management', 'System Integration'],
+  },
   skills: {
     programming_languages: ['Golang', 'TypeScript', 'SQL', 'Python'],
     frameworks: ['React', 'Next.js', 'Express', 'TailwindCSS'],

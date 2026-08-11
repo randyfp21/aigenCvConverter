@@ -38,6 +38,13 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   };
 
   const portfolioLink = candidateCv.personal_information.portfolio_url || candidateCv.personal_information.website || candidateCv.personal_information.linkedin || '';
+  const cats = candidateCv.categorized_qualifications || {};
+  const hasFrontend = Boolean(cats.frontend && cats.frontend.length > 0);
+  const hasBackend = Boolean(cats.backend && cats.backend.length > 0);
+  const hasInfras = Boolean(cats.infrastructure && cats.infrastructure.length > 0);
+  const hasDbTools = Boolean(cats.databases_tools && cats.databases_tools.length > 0);
+  const hasOthers = Boolean(cats.others && cats.others.length > 0);
+  const hasCategorized = hasFrontend || hasBackend || hasInfras || hasDbTools || hasOthers;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-3xl">
@@ -219,21 +226,92 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               />
             </div>
 
+            {/* Categorized Technical Qualifications */}
             <div className="bg-white/40 dark:bg-white/5 border border-white/60 dark:border-white/10 rounded-2xl p-4 text-xs backdrop-blur-2xl">
               <h3 className="font-bold text-slate-600 dark:text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <Code2 className="w-4 h-4 text-blue-500" />
                 <span>Kualifikasi Teknikal &#123;technical_qualification&#125;</span>
               </h3>
-              <div className="flex flex-wrap gap-1.5">
-                {candidateCv.technical_qualifications.map((tech, idx) => (
-                  <span
-                    key={idx}
-                    className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-blue-500/10 dark:bg-white/10 text-blue-700 dark:text-sky-300 border border-blue-500/20 dark:border-white/20 backdrop-blur-md"
-                  >
-                    ✓ {tech}
-                  </span>
-                ))}
-              </div>
+
+              {hasCategorized ? (
+                <div className="space-y-2">
+                  {hasFrontend && (
+                    <div>
+                      <p className="text-[10px] font-black text-sky-500 uppercase tracking-wider mb-1">Front End:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {cats.frontend!.map((tech, idx) => (
+                          <span key={idx} className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-300 border border-sky-500/20">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {hasBackend && (
+                    <div>
+                      <p className="text-[10px] font-black text-blue-500 uppercase tracking-wider mb-1">Back End:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {cats.backend!.map((tech, idx) => (
+                          <span key={idx} className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-blue-500/10 text-blue-600 dark:text-blue-300 border border-blue-500/20">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {hasInfras && (
+                    <div>
+                      <p className="text-[10px] font-black text-purple-500 uppercase tracking-wider mb-1">Infrastructure &amp; Cloud:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {cats.infrastructure!.map((tech, idx) => (
+                          <span key={idx} className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-300 border border-purple-500/20">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {hasDbTools && (
+                    <div>
+                      <p className="text-[10px] font-black text-emerald-500 uppercase tracking-wider mb-1">Databases &amp; Tools:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {cats.databases_tools!.map((tech, idx) => (
+                          <span key={idx} className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-300 border border-emerald-500/20">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {hasOthers && (
+                    <div>
+                      <p className="text-[10px] font-black text-slate-500 uppercase tracking-wider mb-1">Others:</p>
+                      <div className="flex flex-wrap gap-1">
+                        {cats.others!.map((tech, idx) => (
+                          <span key={idx} className="text-[9.5px] font-bold px-2 py-0.5 rounded-lg bg-slate-500/10 text-slate-600 dark:text-slate-300 border border-slate-500/20">
+                            {tech}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-wrap gap-1.5">
+                  {candidateCv.technical_qualifications.map((tech, idx) => (
+                    <span
+                      key={idx}
+                      className="text-[10px] font-extrabold px-2.5 py-1 rounded-lg bg-blue-500/10 dark:bg-white/10 text-blue-700 dark:text-sky-300 border border-blue-500/20 dark:border-white/20 backdrop-blur-md"
+                    >
+                      ✓ {tech}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
 

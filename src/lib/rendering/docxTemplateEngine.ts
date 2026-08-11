@@ -28,6 +28,29 @@ export async function renderDocxFromTemplate(
     );
   }
 
+  // Render Categorized Technical Qualifications for DOCX
+  const cats = cv.categorized_qualifications || {};
+  const catLines: string[] = [];
+  if (cats.frontend && cats.frontend.length > 0) {
+    catLines.push(`• Front End: ${cats.frontend.join(', ')}`);
+  }
+  if (cats.backend && cats.backend.length > 0) {
+    catLines.push(`• Back End: ${cats.backend.join(', ')}`);
+  }
+  if (cats.infrastructure && cats.infrastructure.length > 0) {
+    catLines.push(`• Infrastructure & Cloud: ${cats.infrastructure.join(', ')}`);
+  }
+  if (cats.databases_tools && cats.databases_tools.length > 0) {
+    catLines.push(`• Databases & Tools: ${cats.databases_tools.join(', ')}`);
+  }
+  if (cats.others && cats.others.length > 0) {
+    catLines.push(`• Others: ${cats.others.join(', ')}`);
+  }
+
+  const technicalQualificationText = catLines.length > 0
+    ? catLines.join('\n')
+    : cv.technical_qualifications.map((t) => `• ${t}`).join('\n');
+
   try {
     const zip = new PizZip(docxBaseBuffer);
 
@@ -53,10 +76,6 @@ export async function renderDocxFromTemplate(
 
     const keyProjectsText = (cv.key_projects || [])
       .map((p) => `• ${p.name}: ${p.description} ${p.technologies.length > 0 ? `(Tech: ${p.technologies.join(', ')})` : ''} ${p.link ? `[${p.link}]` : ''}`)
-      .join('\n');
-
-    const technicalQualificationText = cv.technical_qualifications
-      .map((t) => `• ${t}`)
       .join('\n');
 
     const educationText = cv.education
@@ -270,7 +289,7 @@ export async function renderDocxFromTemplate(
       about_me: cv.about_me || cv.summary || '',
       years_of_experience: cv.years_of_experience || 'Junior (1 Year)',
       professional_experience: cv.work_experience.map((j) => `${j.position} at ${j.company}\n${j.responsibilities.map((r) => `• ${r}`).join('\n')}`).join('\n\n'),
-      technical_qualification: cv.technical_qualifications.map((t) => `• ${t}`).join('\n'),
+      technical_qualification: technicalQualificationText,
       education: cv.education.map((e) => `• ${e.institution}`).join('\n'),
       certifications: cv.certifications.map((c) => `• ${c.name}`).join('\n'),
     });

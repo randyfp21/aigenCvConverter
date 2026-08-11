@@ -50,6 +50,14 @@ export async function generatePdfBuffer(
   const logoSrc = getLogoSrc();
   const portfolioLink = cv.personal_information.portfolio_url || cv.personal_information.website || cv.personal_information.linkedin || '';
 
+  const cats = cv.categorized_qualifications || {};
+  const hasFrontend = Boolean(cats.frontend && cats.frontend.length > 0);
+  const hasBackend = Boolean(cats.backend && cats.backend.length > 0);
+  const hasInfras = Boolean(cats.infrastructure && cats.infrastructure.length > 0);
+  const hasDbTools = Boolean(cats.databases_tools && cats.databases_tools.length > 0);
+  const hasOthers = Boolean(cats.others && cats.others.length > 0);
+  const hasCategorized = hasFrontend || hasBackend || hasInfras || hasDbTools || hasOthers;
+
   const styles = StyleSheet.create({
     page: {
       paddingTop: 28,
@@ -161,6 +169,11 @@ export async function generatePdfBuffer(
       marginBottom: 1.5,
       paddingLeft: 12,
       color: '#0F766E',
+    },
+    categoryRow: {
+      fontSize: 8.5,
+      lineHeight: 1.3,
+      marginBottom: 2,
     },
     skillBadge: {
       fontSize: 8,
@@ -296,13 +309,48 @@ export async function generatePdfBuffer(
             return (
               <View key="technical_qualifications" style={styles.sectionContainer}>
                 <Text style={styles.sectionTitle}>{titles.technical_qualifications?.[lang] || 'Technical Qualifications'}</Text>
-                <View style={styles.skillsWrap}>
-                  {cv.technical_qualifications.map((qual, qIdx) => (
-                    <Text key={qIdx} style={styles.skillBadge}>
-                      ✓ {qual}
-                    </Text>
-                  ))}
-                </View>
+                {hasCategorized ? (
+                  <View>
+                    {hasFrontend && (
+                      <Text style={styles.categoryRow}>
+                        <Text style={{ fontWeight: 'bold', color: primaryColor }}>Front End: </Text>
+                        <Text style={{ color: '#374151' }}>{cats.frontend!.join(', ')}</Text>
+                      </Text>
+                    )}
+                    {hasBackend && (
+                      <Text style={styles.categoryRow}>
+                        <Text style={{ fontWeight: 'bold', color: primaryColor }}>Back End: </Text>
+                        <Text style={{ color: '#374151' }}>{cats.backend!.join(', ')}</Text>
+                      </Text>
+                    )}
+                    {hasInfras && (
+                      <Text style={styles.categoryRow}>
+                        <Text style={{ fontWeight: 'bold', color: primaryColor }}>Infrastructure &amp; Cloud: </Text>
+                        <Text style={{ color: '#374151' }}>{cats.infrastructure!.join(', ')}</Text>
+                      </Text>
+                    )}
+                    {hasDbTools && (
+                      <Text style={styles.categoryRow}>
+                        <Text style={{ fontWeight: 'bold', color: primaryColor }}>Databases &amp; Tools: </Text>
+                        <Text style={{ color: '#374151' }}>{cats.databases_tools!.join(', ')}</Text>
+                      </Text>
+                    )}
+                    {hasOthers && (
+                      <Text style={styles.categoryRow}>
+                        <Text style={{ fontWeight: 'bold', color: primaryColor }}>Others: </Text>
+                        <Text style={{ color: '#374151' }}>{cats.others!.join(', ')}</Text>
+                      </Text>
+                    )}
+                  </View>
+                ) : (
+                  <View style={styles.skillsWrap}>
+                    {cv.technical_qualifications.map((qual, qIdx) => (
+                      <Text key={qIdx} style={styles.skillBadge}>
+                        ✓ {qual}
+                      </Text>
+                    ))}
+                  </View>
+                )}
               </View>
             );
           }

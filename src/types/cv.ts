@@ -38,6 +38,15 @@ export interface SkillCategories {
   other: string[];
 }
 
+export interface CategorizedTechnicalQualifications {
+  frontend?: string[];
+  backend?: string[];
+  infrastructure?: string[];
+  databases_tools?: string[];
+  others?: string[];
+  [categoryKey: string]: string[] | undefined;
+}
+
 export interface Certification {
   id: string;
   name: string;
@@ -78,6 +87,7 @@ export interface CanonicalCV {
   work_experience: WorkExperience[];
   key_projects?: Project[];
   technical_qualifications: string[];
+  categorized_qualifications?: CategorizedTechnicalQualifications;
   skills: SkillCategories;
   certifications: Certification[];
   education: Education[];
