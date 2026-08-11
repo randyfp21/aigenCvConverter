@@ -36,6 +36,7 @@ export async function POST(req: NextRequest) {
     const templateId = (formData.get('templateId') as string) || 'company-aigen';
     const templateConfigJson = formData.get('templateConfig') as string | null;
     const language = ((formData.get('language') as string) || 'en') as TargetLanguage;
+    const customInstructions = (formData.get('customInstructions') as string) || '';
     const isSampleMode = formData.get('isSample') === 'true';
 
     let canonicalCv = SAMPLE_RANDY_FARHAN_CV;
@@ -94,7 +95,8 @@ export async function POST(req: NextRequest) {
         parsedDoc.rawText,
         uploadedFileBuffer,
         file.name,
-        file.type || 'application/pdf'
+        file.type || 'application/pdf',
+        customInstructions
       );
 
       canonicalCv = extractionResult.cv;

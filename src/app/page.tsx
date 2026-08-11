@@ -7,6 +7,7 @@ import { Navbar } from '@/components/layout/Navbar';
 import { UploadSection } from '@/components/upload/UploadSection';
 import { TemplateSelector } from '@/components/template/TemplateSelector';
 import { LanguageSelector } from '@/components/language/LanguageSelector';
+import { EnhancementSection } from '@/components/enhancement/EnhancementSection';
 import { ReviewModal, AiStatusInfo } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
@@ -29,6 +30,7 @@ export default function Home() {
     COMPANY_TEMPLATES[0]
   );
   const [targetLanguage, setTargetLanguage] = useState<TargetLanguage>('en');
+  const [customInstructions, setCustomInstructions] = useState<string>('');
 
   const [isConverting, setIsConverting] = useState<boolean>(false);
   const [conversionError, setConversionError] = useState<string | null>(null);
@@ -102,6 +104,9 @@ export default function Home() {
       formData.append('templateId', selectedTemplateConfig.id);
       formData.append('templateConfig', JSON.stringify(selectedTemplateConfig));
       formData.append('language', targetLanguage);
+      if (customInstructions.trim()) {
+        formData.append('customInstructions', customInstructions.trim());
+      }
 
       setConversionProgressStep('Langkah 2/3: Gemini AI menganalisis kualifikasi & pengalaman proyek...');
 
@@ -139,7 +144,7 @@ export default function Home() {
   const handleConfirmExport = (confirmedCv: CanonicalCV) => {
     setProcessedCv(confirmedCv);
     setIsReviewModalOpen(false);
-    setCurrentStep(4);
+    setCurrentStep(5);
   };
 
   const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
@@ -188,12 +193,12 @@ export default function Home() {
             </h1>
 
             <p className="text-base text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-              Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator &amp; aksen, alamat, website, telp), dan hasilkan CV resmi.
+              Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator, font &amp; border), dan hasilkan CV resmi.
             </p>
           </div>
 
-          {/* STEP 1 to 3 Flow */}
-          {currentStep <= 3 && (
+          {/* STEP 1 to 4 Flow */}
+          {currentStep <= 4 && (
             <div className="space-y-6">
               <UploadSection
                 selectedFile={selectedFile}
@@ -214,6 +219,12 @@ export default function Home() {
               <LanguageSelector
                 selectedLanguage={targetLanguage}
                 onSelectLanguage={(lang) => setTargetLanguage(lang)}
+              />
+
+              {/* STEP 4 (OPSIONAL): AI Enhancement & Role Transformation */}
+              <EnhancementSection
+                customInstructions={customInstructions}
+                onChangeCustomInstructions={setCustomInstructions}
               />
 
               {/* Validation & Convert Action Banner */}
@@ -238,6 +249,11 @@ export default function Home() {
                     <p className="text-[11px] text-slate-600 dark:text-slate-400 font-semibold">
                       Source: {fileMetadata ? fileMetadata.name : 'No file loaded'} • Target PT:{' '}
                       <strong className="text-slate-900 dark:text-white">{selectedTemplateConfig.company_name}</strong> ({selectedTemplateConfig.code})
+                      {customInstructions.trim() && (
+                        <span className="text-purple-600 dark:text-purple-300 font-bold ml-1.5">
+                          [+ AI Enhancement Active]
+                        </span>
+                      )}
                     </p>
                     {isConverting && conversionProgressStep && (
                       <p className="text-[10px] font-black text-blue-600 dark:text-sky-400 animate-pulse mt-0.5">
@@ -281,8 +297,8 @@ export default function Home() {
             </div>
           )}
 
-          {/* STEP 4: PREVIEW & DOWNLOAD */}
-          {currentStep === 4 && processedCv && outputPdfUrl && outputDocxUrl && (
+          {/* STEP 5: PREVIEW & DOWNLOAD */}
+          {currentStep === 5 && processedCv && outputPdfUrl && outputDocxUrl && (
             <PreviewSection
               template={selectedTemplateConfig}
               language={targetLanguage}

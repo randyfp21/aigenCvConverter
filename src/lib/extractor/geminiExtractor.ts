@@ -99,13 +99,14 @@ export async function uploadBufferToGemini(
 
 /**
  * Extracts structured candidate data using Gemini AI (supports direct File API & text fallback)
- * Includes status logs and clear rate-limit/quota error diagnosis.
+ * Optionally incorporates user interview notes or target role transformations.
  */
 export async function extractCvWithGeminiAI(
   rawCvText: string,
   fileBuffer?: Buffer,
   fileName?: string,
-  mimeType?: string
+  mimeType?: string,
+  customInstructions?: string
 ): Promise<GeminiExtractionResult> {
   const statusLog: string[] = [];
   const modelsToTry = [
@@ -117,9 +118,25 @@ export async function extractCvWithGeminiAI(
 
   statusLog.push('Memulai proses ekstraksi & kualifikasi kandidat via Google Gemini AI...');
 
+  let customPromptBlock = '';
+  if (customInstructions && customInstructions.trim().length > 0) {
+    const trimmedInst = customInstructions.trim();
+    statusLog.push(`Mengaplikasikan instruksi kustom hasil interview & transformasi CV: "${trimmedInst}"`);
+    customPromptBlock = `
+OPTIONAL USER CUSTOM ENHANCEMENT & INTERVIEW NOTES INSTRUCTIONS:
+"${trimmedInst}"
+
+INSTRUCTIONS FOR USER ENHANCEMENTS:
+- Incorporate any new project experiences, technical skills, achievements, or certifications mentioned in the interview notes above into the appropriate sections of the JSON payload.
+- If the user specified a target role transformation (e.g. transitioning from Backend Developer to Solutions Architect), tailor the candidate's primary role title, executive summary, and responsibility bullet points to align with this target role while preserving the genuine background.
+- Combine existing CV facts with these new improvements seamlessly.
+`;
+  }
+
   const prompt = `
 You are an Expert AI HR Specialist and Senior CV Analyst.
 Analyze the provided candidate CV (file or text) and produce a fully qualified, structured JSON payload.
+${customPromptBlock}
 
 SPECIAL RULES FOR PORTFOLIO & PROJECTS:
 - Extract all Portfolio Links, GitHub, Behance, Dribbble, LinkedIn, or Personal Portfolio URLs. DO NOT OMIT THEM.
