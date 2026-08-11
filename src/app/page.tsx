@@ -199,7 +199,7 @@ export default function Home() {
 
           {/* STEP 1 to 4 Flow */}
           {currentStep <= 4 && (
-            <div className="space-y-6">
+            <div className="space-y-6 pb-32">
               <UploadSection
                 selectedFile={selectedFile}
                 fileMetadata={fileMetadata}
@@ -227,8 +227,8 @@ export default function Home() {
                 onChangeCustomInstructions={setCustomInstructions}
               />
 
-              {/* Validation & Convert Action Banner */}
-              <div className="sticky bottom-6 z-40 liquid-glass rounded-3xl p-5 shadow-2xl flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Validation & Convert Floating Action Banner (Always Floating at Bottom) */}
+              <div className="fixed bottom-4 sm:bottom-6 left-4 right-4 max-w-7xl mx-auto z-40 bg-white/70 dark:bg-slate-950/80 border border-white/80 dark:border-white/15 rounded-3xl p-4 sm:p-5 shadow-2xl backdrop-blur-3xl flex flex-col sm:flex-row items-center justify-between gap-4 transition-all duration-300">
                 <div className="flex items-center space-x-3">
                   <div className="w-12 h-12 rounded-2xl bg-blue-600/20 text-blue-600 dark:text-sky-400 border border-blue-500/30 flex items-center justify-center shadow-lg">
                     <ShieldCheck className="w-6 h-6" />
