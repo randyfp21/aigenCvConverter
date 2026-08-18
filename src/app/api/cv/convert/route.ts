@@ -30,6 +30,26 @@ export const dynamic = 'force-dynamic';
 
 export async function POST(req: NextRequest) {
   try {
+    if (req.headers.get('content-type')?.includes('application/json')) {
+      const body = await req.json();
+      if (body.action === 'render' || body.confirmedCv) {
+        const confirmedCv = body.confirmedCv || body.cv;
+        const templateConfig = body.templateConfig || getCompanyTemplate(body.templateId || 'company-aigen');
+        const language = (body.language || 'en') as TargetLanguage;
+
+        const pdfBuffer = await generatePdfBuffer(confirmedCv, templateConfig, language);
+        const docxBuffer = await renderDocxFromTemplate(confirmedCv, templateConfig, language);
+
+        return NextResponse.json({
+          success: true,
+          outputs: {
+            pdfBase64: `data:application/pdf;base64,${pdfBuffer.toString('base64')}`,
+            docxBase64: `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${docxBuffer.toString('base64')}`,
+          },
+        });
+      }
+    }
+
     const formData = await req.formData();
     const file = formData.get('file') as File | null;
     const templateFile = formData.get('templateFile') as File | null;
@@ -140,10 +160,14 @@ export async function POST(req: NextRequest) {
     );
 
     if (!validationReport.isValid) {
+      const errorDetail = validationReport.errors.length > 0
+        ? `CV Validation Failed: ${validationReport.errors.join('; ')}`
+        : 'CV Validation Failed. Information loss detected.';
+
       return NextResponse.json(
         {
           success: false,
-          error: 'CV Validation Failed. Information loss detected.',
+          error: errorDetail,
           validationReport,
         },
         { status: 422 }

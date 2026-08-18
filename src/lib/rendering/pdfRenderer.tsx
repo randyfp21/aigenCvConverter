@@ -1,6 +1,119 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Image, renderToBuffer } from '@react-pdf/renderer';
+import {
+  Document,
+  Page,
+  Text,
+  View,
+  StyleSheet,
+  Image,
+  Svg,
+  Path,
+  Rect,
+  Circle,
+  G,
+  renderToBuffer,
+} from '@react-pdf/renderer';
 import { CanonicalCV, CompanyTemplateConfig, TargetLanguage } from '@/types/cv';
+
+interface ParsedRect {
+  x?: number;
+  y?: number;
+  width: number;
+  height: number;
+  rx?: number;
+  fill?: string;
+}
+
+interface ParsedPath {
+  d: string;
+  stroke?: string;
+  strokeWidth?: number;
+  strokeLinecap?: 'butt' | 'round' | 'square';
+  strokeLinejoin?: 'miter' | 'round' | 'bevel';
+  fill?: string;
+}
+
+interface ParsedCircle {
+  cx: number;
+  cy: number;
+  r: number;
+  fill?: string;
+  stroke?: string;
+  strokeWidth?: number;
+}
+
+function parseSvgLogo(svgString?: string) {
+  if (!svgString || typeof svgString !== 'string') return null;
+
+  const rectMatch = svgString.match(/<rect\s+([^>]+)\/?>/i);
+  let rect: ParsedRect | null = null;
+  if (rectMatch) {
+    const attrStr = rectMatch[1];
+    const width = parseFloat((attrStr.match(/width=["']([^"']+)["']/) || [])[1] || '100');
+    const height = parseFloat((attrStr.match(/height=["']([^"']+)["']/) || [])[1] || '100');
+    const rx = parseFloat((attrStr.match(/rx=["']([^"']+)["']/) || [])[1] || '0');
+    const fill = (attrStr.match(/fill=["']([^"']+)["']/) || [])[1] || '#0F172A';
+    rect = { width, height, rx, fill };
+  }
+
+  const paths: ParsedPath[] = [];
+  const pathRegex = /<path\s+([^>]+)\/?>/gi;
+  let match: RegExpExecArray | null;
+  while ((match = pathRegex.exec(svgString)) !== null) {
+    const attrStr = match[1];
+    const d = (attrStr.match(/d=["']([^"']+)["']/) || [])[1];
+    if (d) {
+      const stroke = (attrStr.match(/stroke=["']([^"']+)["']/) || [])[1];
+      const strokeWidth = parseFloat((attrStr.match(/stroke-width=["']([^"']+)["']/) || [])[1] || '1');
+      const strokeLinecap = (attrStr.match(/stroke-linecap=["']([^"']+)["']/) || [])[1] as any;
+      const strokeLinejoin = (attrStr.match(/stroke-linejoin=["']([^"']+)["']/) || [])[1] as any;
+      const fill = (attrStr.match(/fill=["']([^"']+)["']/) || [])[1] || 'none';
+      paths.push({ d, stroke, strokeWidth, strokeLinecap, strokeLinejoin, fill });
+    }
+  }
+
+  const circles: ParsedCircle[] = [];
+  const circleRegex = /<circle\s+([^>]+)\/?>/gi;
+  while ((match = circleRegex.exec(svgString)) !== null) {
+    const attrStr = match[1];
+    const cx = parseFloat((attrStr.match(/cx=["']([^"']+)["']/) || [])[1] || '50');
+    const cy = parseFloat((attrStr.match(/cy=["']([^"']+)["']/) || [])[1] || '50');
+    const r = parseFloat((attrStr.match(/r=["']([^"']+)["']/) || [])[1] || '10');
+    const fill = (attrStr.match(/fill=["']([^"']+)["']/) || [])[1] || 'none';
+    const stroke = (attrStr.match(/stroke=["']([^"']+)["']/) || [])[1];
+    const strokeWidth = parseFloat((attrStr.match(/stroke-width=["']([^"']+)["']/) || [])[1] || '0');
+    circles.push({ cx, cy, r, fill, stroke, strokeWidth });
+  }
+
+  if (!rect && paths.length === 0 && circles.length === 0) return null;
+  return { rect, paths, circles };
+}
+
+function getRasterLogoSrc(logo_url?: string, logo_svg?: string): string | null {
+  if (logo_url) {
+    const trimmed = logo_url.trim();
+    if (
+      trimmed.startsWith('data:image/png') ||
+      trimmed.startsWith('data:image/jpeg') ||
+      trimmed.startsWith('data:image/jpg') ||
+      trimmed.startsWith('data:image/webp') ||
+      trimmed.startsWith('data:image/gif') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://')
+    ) {
+      return trimmed;
+    }
+  }
+
+  if (logo_svg) {
+    const hrefMatch = logo_svg.match(/href=["'](data:image\/[^"']+)["']/i);
+    if (hrefMatch && hrefMatch[1]) {
+      return hrefMatch[1];
+    }
+  }
+
+  return null;
+}
 
 export async function generatePdfBuffer(
   cv: CanonicalCV,
@@ -27,27 +140,8 @@ export async function generatePdfBuffer(
 
   const pdfFont = getPdfFontFamily();
 
-  // Helper to extract or base64 encode company logo image src for @react-pdf/renderer
-  const getLogoSrc = (): string | null => {
-    if (logo_url && logo_url.startsWith('data:image')) {
-      return logo_url;
-    }
-    const hrefMatch = logo_svg?.match(/href=["'](data:image\/[^"']+)["']/);
-    if (hrefMatch && hrefMatch[1]) {
-      return hrefMatch[1];
-    }
-    if (logo_svg && logo_svg.trim().startsWith('<svg')) {
-      try {
-        const base64Svg = Buffer.from(logo_svg).toString('base64');
-        return `data:image/svg+xml;base64,${base64Svg}`;
-      } catch (e) {
-        console.warn('Failed to base64 encode logo_svg:', e);
-      }
-    }
-    return null;
-  };
-
-  const logoSrc = getLogoSrc();
+  const rasterLogoSrc = getRasterLogoSrc(logo_url, logo_svg);
+  const parsedSvg = !rasterLogoSrc ? parseSvgLogo(logo_svg) : null;
   const portfolioLink = cv.personal_information.portfolio_url || cv.personal_information.website || cv.personal_information.linkedin || '';
 
   const cats = cv.categorized_qualifications || {};
@@ -107,6 +201,7 @@ export async function generatePdfBuffer(
     roleText: {
       fontSize: 10,
       fontWeight: 'bold',
+      fontStyle: 'italic',
       color: sepColor,
       marginTop: 1,
     },
@@ -144,11 +239,13 @@ export async function generatePdfBuffer(
     jobTitle: {
       fontSize: 9.5,
       fontWeight: 'bold',
+      fontStyle: 'italic',
       color: '#111827',
     },
     companyText: {
       fontSize: 9,
       fontWeight: 'bold',
+      fontStyle: 'italic',
       color: sepColor,
       marginBottom: 2,
     },
@@ -242,21 +339,56 @@ export async function generatePdfBuffer(
           </View>
 
           <View style={styles.headerRight}>
-            {logoSrc ? (
-              <Image src={logoSrc} style={styles.logoImage} />
+            {rasterLogoSrc ? (
+              <Image src={rasterLogoSrc} style={styles.logoImage} />
+            ) : parsedSvg ? (
+              <Svg viewBox="0 0 100 100" style={styles.logoImage}>
+                {parsedSvg.rect && (
+                  <Rect
+                    x={parsedSvg.rect.x || 0}
+                    y={parsedSvg.rect.y || 0}
+                    width={parsedSvg.rect.width}
+                    height={parsedSvg.rect.height}
+                    rx={parsedSvg.rect.rx || 0}
+                    fill={parsedSvg.rect.fill || primaryColor}
+                  />
+                )}
+                {parsedSvg.paths.map((p, pIdx) => (
+                  <Path
+                    key={`p-${pIdx}`}
+                    d={p.d}
+                    stroke={p.stroke}
+                    strokeWidth={p.strokeWidth}
+                    strokeLinecap={p.strokeLinecap}
+                    strokeLinejoin={p.strokeLinejoin}
+                    fill={p.fill}
+                  />
+                ))}
+                {parsedSvg.circles.map((c, cIdx) => (
+                  <Circle
+                    key={`c-${cIdx}`}
+                    cx={c.cx}
+                    cy={c.cy}
+                    r={c.r}
+                    fill={c.fill}
+                    stroke={c.stroke}
+                    strokeWidth={c.strokeWidth}
+                  />
+                ))}
+              </Svg>
             ) : (
               <View
                 style={{
-                  width: 40,
-                  height: 40,
+                  width: 44,
+                  height: 44,
                   backgroundColor: primaryColor,
-                  borderRadius: 4,
+                  borderRadius: 6,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Text style={{ color: '#FFFFFF', fontSize: 9, fontWeight: 'bold' }}>
-                  {company_name.substring(0, 4)}
+                <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>
+                  {(company_name || 'PT').substring(0, 4).toUpperCase()}
                 </Text>
               </View>
             )}

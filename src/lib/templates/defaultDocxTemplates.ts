@@ -104,10 +104,10 @@ export async function createOfficialCompanyDocxTemplate(
                             alignment: AlignmentType.RIGHT,
                             children: [
                               new TextRun({
-                                text: `LOGO`,
+                                text: `[${companyCode || 'AIGEN'}] OFFICIAL PROFILE`,
                                 bold: true,
                                 size: 14,
-                                color: '0284C7',
+                                color: cleanPrimary,
                                 font: fontFamily,
                               }),
                             ],
@@ -180,6 +180,7 @@ export async function createOfficialCompanyDocxTemplate(
               new TextRun({
                 text: '{role}',
                 bold: true,
+                italics: true,
                 size: 20,
                 color: '0284C7',
                 font: fontFamily,

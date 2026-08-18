@@ -101,13 +101,13 @@ export async function generateDocxBuffer(
         children.push(
           new Paragraph({
             children: [
-              new TextRun({ text: job.position, bold: true, size: 22 }),
+              new TextRun({ text: job.position, bold: true, italics: true, size: 22 }),
               new TextRun({ text: `   ${job.start_date} - ${job.end_date}`, size: 18, color: '777777' }),
             ],
             spacing: { before: 100, after: 40 },
           }),
           new Paragraph({
-            children: [new TextRun({ text: job.company, bold: true, size: 20, color: secondaryColorHex })],
+            children: [new TextRun({ text: job.company, bold: true, italics: true, size: 20, color: secondaryColorHex })],
             spacing: { after: 100 },
           })
         );

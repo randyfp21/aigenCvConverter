@@ -1,5 +1,13 @@
 import { CanonicalCV, FinalValidationReport, ValidationStageResult } from '@/types/cv';
-import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
+import { COMPANY_TEMPLATES, getCompanyTemplate } from '@/lib/templates/companies';
+
+function getUniqueSkillsCount(cv: CanonicalCV): number {
+  const mainSkills = Array.isArray(cv.technical_qualifications) ? cv.technical_qualifications : [];
+  const catSkills = cv.categorized_qualifications
+    ? Object.values(cv.categorized_qualifications).flat().filter((s): s is string => Boolean(s))
+    : [];
+  return new Set([...mainSkills, ...catSkills]).size;
+}
 
 export function validateCvConversionPipeline(
   sourceCv: CanonicalCV,
@@ -12,7 +20,16 @@ export function validateCvConversionPipeline(
   const warnings: string[] = [];
 
   // Stage 1: Template Validation
-  const templateExists = COMPANY_TEMPLATES.some((t) => t.id === selectedTemplateId);
+  const isCustomTemplate =
+    selectedTemplateId.startsWith('company-custom-') ||
+    selectedTemplateId.startsWith('custom-') ||
+    selectedTemplateId.includes('custom');
+
+  const templateExists =
+    isCustomTemplate ||
+    COMPANY_TEMPLATES.some((t) => t.id === selectedTemplateId || t.code === selectedTemplateId) ||
+    Boolean(getCompanyTemplate(selectedTemplateId));
+
   stages.push({
     stage: 'Template Selection Validation',
     status: templateExists ? 'passed' : 'failed',
@@ -23,27 +40,29 @@ export function validateCvConversionPipeline(
   if (!templateExists) errors.push(`Template '${selectedTemplateId}' invalid.`);
 
   // Stage 2: Canonical CV Schema Integrity
-  const hasName = Boolean(sourceCv.personal_information.full_name.trim());
+  const hasName = Boolean(sourceCv.personal_information?.full_name?.trim());
   stages.push({
     stage: 'Canonical CV Integrity',
     status: hasName ? 'passed' : 'failed',
-    message: hasName ? `Candidate name parsed: '${sourceCv.personal_information.full_name}'` : 'Candidate name is missing from source document.',
+    message: hasName
+      ? `Candidate name parsed: '${sourceCv.personal_information.full_name}'`
+      : 'Candidate name is missing from source document.',
   });
   if (!hasName) errors.push('Candidate name missing.');
 
   // Stage 3: Audit Item Counts for Data Loss Prevention (Rule 8)
-  const sourceJobs = sourceCv.meta.source_stats.work_experience_count || sourceCv.work_experience.length;
-  const outputJobs = outputCv.work_experience.length;
+  const sourceJobs = sourceCv.work_experience ? sourceCv.work_experience.length : 0;
+  const outputJobs = outputCv.work_experience ? outputCv.work_experience.length : 0;
 
-  const sourceCerts = sourceCv.meta.source_stats.certifications_count || sourceCv.certifications.length;
-  const outputCerts = outputCv.certifications.length;
+  const sourceCerts = sourceCv.certifications ? sourceCv.certifications.length : 0;
+  const outputCerts = outputCv.certifications ? outputCv.certifications.length : 0;
 
-  const sourceTech = sourceCv.meta.source_stats.skills_count || sourceCv.technical_qualifications.length;
-  const outputTech = outputCv.technical_qualifications.length;
+  const sourceTech = getUniqueSkillsCount(sourceCv);
+  const outputTech = getUniqueSkillsCount(outputCv);
 
-  const workExperiencePreserved = sourceJobs === outputJobs;
-  const certsPreserved = sourceCerts === outputCerts;
-  const techPreserved = sourceTech === outputTech;
+  const workExperiencePreserved = outputJobs >= sourceJobs;
+  const certsPreserved = outputCerts >= sourceCerts;
+  const techPreserved = outputTech >= sourceTech;
 
   const dataLossPassed = workExperiencePreserved && certsPreserved && techPreserved;
 
@@ -69,10 +88,14 @@ export function validateCvConversionPipeline(
   if (!certsPreserved) {
     errors.push(`Certification count mismatch: Source has ${sourceCerts}, output has ${outputCerts}.`);
   }
+  if (!techPreserved) {
+    errors.push(`Technical qualification count mismatch: Source has ${sourceTech}, output has ${outputTech}.`);
+  }
 
   // Stage 4: Unresolved Placeholder Scan
   const outputJsonString = JSON.stringify(outputCv);
-  const unresolvedPlaceholders = (outputJsonString.match(/undefined|null|\{.*?\}|\[object Object\]/g) || []).length;
+  const unresolvedMatches = outputJsonString.match(/\{\{?[a-zA-Z0-9_]+\}?\}|\bundefined\b/g) || [];
+  const unresolvedPlaceholders = unresolvedMatches.length;
 
   stages.push({
     stage: 'Unresolved Placeholder Audit',

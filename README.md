@@ -1,36 +1,105 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📄 AI Gen CV Converter & Company Template Customizer
 
-## Getting Started
+Aplikasi web modern berbasis **Next.js 16 (Turbopack)** dan **Google Gemini AI** untuk menganalisis, mengonversi, serta memformat ulang CV kandidat menjadi dokumen CV standar resmi perusahaan dalam bentuk **PDF** dan **Microsoft Word (.docx)**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## 🌟 Fitur Utama
+
+- 🧠 **AI-Powered CV Parsing (Gemini AI)**: Mengidentifikasi & mengekstrak data kandidat secara otomatis (Nama, Ringkasan Profil, Skills Terkategori, Pengalaman Kerja, Proyek Detail, Sertifikasi, & Pendidikan) menggunakan model `gemini-3-flash-preview` dengan proteksi fallback otomatis jika terjadi kuota terlampaui (*rate limit*).
+- 🏢 **Multi-Template Perusahaan & Custom Branding**: Mendukung berbagai template resmi perusahaan dengan warna tema kustom, logo perusahaan (SVG Vector native parsing & URL raster image), serta format tata letak yang profesional.
+- 🗄️ **Database Template (PostgreSQL 16)**: Penyimpanan template kustom perusahaan yang persistent menggunakan database PostgreSQL 16.
+- ✏️ **Modal Konfirmasi & Full Inline Editor Interaktif**:
+  - Pengguna dapat meninjau dan mengedit **seluruh field CV** (Nama, Role, Executive Summary, Skills, Tanggal & Poin Responsibilitas Pekerjaan, Detail Proyek, Sertifikasi, Pendidikan) sebelum dicetak.
+  - **Opsi Toggle Portfolio / LinkedIn**: Disediakan checkbox interaktif untuk memilih apakah link karya/LinkedIn kandidat ditampilkan atau disembunyikan pada hasil konversi CV.
+- 🖋️ **Format Typography Standar Perusahaan**:
+  - Penulisan **Role / Jabatan** dan **Nama Perusahaan** secara konsisten diformat **Bold & Italic** di seluruh template PDF, DOCX, dan UI preview.
+- 📥 **Ekspor Ganda (PDF & DOCX)**:
+  - Ekspor dokumen ke format **PDF** menggunakan native vector renderer (`@react-pdf/renderer` & `pdf-lib`).
+  - Ekspor dokumen ke format **Microsoft Word (.docx)** menggunakan engine `docx`.
+
+---
+
+## 🛠️ Teknologi & Stack
+
+- **Framework**: [Next.js 16](https://nextjs.org/) (Turbopack, App Router)
+- **Bahasa**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) dengan Glassmorphism & Micro-animations
+- **AI Engine**: Google Gemini AI API (`@google/genai`)
+- **Database**: PostgreSQL 16 (`pg`)
+- **Rendering Engines**:
+  - PDF: `@react-pdf/renderer` & `pdf-lib`
+  - DOCX: `docx`
+- **Icon Set**: [Lucide React](https://lucide.dev/)
+
+---
+
+## 🚀 Cara Menggunakan & Jalankan Lokal
+
+### 1. Prasyarat
+- Node.js versi 18+ atau yang terbaru
+- PostgreSQL 16 aktif pada port `5432`
+
+### 2. Konfigurasi Environment Variable (`.env.local`)
+Buat atau sesuaikan file `.env.local` di root direktori project:
+
+```env
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aigencv
+GEMINI_API_KEY=your_gemini_api_key_here
+PORT=3005
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 3. Instalasi Dependency & Dev Server
+Jalankan perintah berikut pada terminal:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+# Install dependency project
+npm install
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+# Jalankan server pengembangan (Port 3005)
+npm run dev
+```
 
-## Learn More
+Buka browser dan akses `http://localhost:3005`.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📂 Struktur Direktori
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```text
+aigenCvConverter/
+├── src/
+│   ├── app/
+│   │   ├── api/
+│   │   │   ├── cv/convert/route.ts   # Main API pipeline untuk analisis & rendering CV
+│   │   │   └── templates/route.ts    # API pengelola template perusahaan (PostgreSQL)
+│   │   ├── page.tsx                  # Halaman utama aplikasi (Steps Upload -> Export)
+│   │   └── layout.tsx
+│   ├── components/
+│   │   ├── review/
+│   │   │   └── ReviewModal.tsx       # Modal konfirmasi & editor CV interaktif
+│   │   ├── preview/
+│   │   └── ...
+│   ├── lib/
+│   │   ├── extractor/
+│   │   │   └── geminiExtractor.ts    # Ekstraksi AI & penyelarasan data kandidat
+│   │   ├── rendering/
+│   │   │   ├── pdfRenderer.tsx       # Renderer React-PDF (SVG vector logo support)
+│   │   │   ├── pdfTemplateOverlay.ts # Overlay renderer pdf-lib
+│   │   │   └── docxRenderer.ts       # Renderer Microsoft Word (.docx)
+│   │   ├── templates/
+│   │   │   ├── companies.ts          # Konfigurasi bawaan template perusahaan
+│   │   │   └── templateManager.ts    # Pengelola persistence PostgreSQL
+│   │   └── validation/
+│   │       └── auditEngine.ts        # Validasi batas kehilangan data & kelayakan CV
+│   └── types/
+│       └── cv.ts                     # Definisi tipe data CanonicalCV & Template
+├── public/                           # Assets publik & SVG logo
+└── README.md
+```
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📦 Lisensi
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Dibuat untuk kebutuhan konversi & standardisasi CV perusahaan. Hak Cipta © 2026.

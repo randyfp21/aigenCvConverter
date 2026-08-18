@@ -285,6 +285,58 @@ ${rawCvText}
       const cleanJson = responseText.replace(/^```json\s*/i, '').replace(/\s*```$/i, '').trim();
       const parsedData = JSON.parse(cleanJson);
 
+      const rawTech = Array.isArray(parsedData.technical_qualifications) ? parsedData.technical_qualifications : [];
+      const catTech = [
+        ...(Array.isArray(parsedData.categorized_qualifications?.frontend) ? parsedData.categorized_qualifications.frontend : []),
+        ...(Array.isArray(parsedData.categorized_qualifications?.backend) ? parsedData.categorized_qualifications.backend : []),
+        ...(Array.isArray(parsedData.categorized_qualifications?.infrastructure) ? parsedData.categorized_qualifications.infrastructure : []),
+        ...(Array.isArray(parsedData.categorized_qualifications?.databases_tools) ? parsedData.categorized_qualifications.databases_tools : []),
+        ...(Array.isArray(parsedData.categorized_qualifications?.others) ? parsedData.categorized_qualifications.others : []),
+      ];
+      const combinedTech = Array.from(new Set([...rawTech, ...catTech])).filter(Boolean);
+
+      const workExpList = Array.isArray(parsedData.work_experience)
+        ? parsedData.work_experience.map((job: any, index: number) => ({
+            id: job.id || `job-ai-${index + 1}`,
+            company: job.company || 'Enterprise Company',
+            position: job.position || 'Professional Role',
+            location: job.location || '',
+            start_date: job.start_date || '',
+            end_date: job.end_date || '',
+            is_current: Boolean(job.is_current),
+            responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities : [],
+            projects: Array.isArray(job.projects)
+              ? job.projects.map((p: any) => ({
+                  name: p.name || 'Project',
+                  description: p.description || '',
+                  technologies: Array.isArray(p.technologies) ? p.technologies : [],
+                  role: p.role || '',
+                  link: p.link || '',
+                }))
+              : [],
+          }))
+        : [];
+
+      const certsList = Array.isArray(parsedData.certifications)
+        ? parsedData.certifications.map((c: any, index: number) => ({
+            id: c.id || `cert-ai-${index + 1}`,
+            name: c.name || 'Certification',
+            issuer: c.issuer || '',
+            date: c.date || '',
+          }))
+        : [];
+
+      const eduList = Array.isArray(parsedData.education)
+        ? parsedData.education.map((e: any, index: number) => ({
+            id: e.id || `edu-ai-${index + 1}`,
+            institution: e.institution || 'University',
+            degree: e.degree || '',
+            field_of_study: e.field_of_study || '',
+            start_date: e.start_date || '',
+            end_date: e.end_date || '',
+          }))
+        : [];
+
       const qualifiedCv: CanonicalCV = {
         personal_information: {
           full_name: parsedData.personal_information?.full_name || 'Candidate',
@@ -301,27 +353,7 @@ ${rawCvText}
         total_years_num: typeof parsedData.total_years_num === 'number' ? parsedData.total_years_num : 1,
         about_me: parsedData.about_me || parsedData.summary || '',
         summary: parsedData.summary || parsedData.about_me || '',
-        work_experience: Array.isArray(parsedData.work_experience)
-          ? parsedData.work_experience.map((job: any, index: number) => ({
-              id: job.id || `job-ai-${index + 1}`,
-              company: job.company || 'Enterprise Company',
-              position: job.position || 'Professional Role',
-              location: job.location || '',
-              start_date: job.start_date || '',
-              end_date: job.end_date || '',
-              is_current: Boolean(job.is_current),
-              responsibilities: Array.isArray(job.responsibilities) ? job.responsibilities : [],
-              projects: Array.isArray(job.projects)
-                ? job.projects.map((p: any) => ({
-                    name: p.name || 'Project',
-                    description: p.description || '',
-                    technologies: Array.isArray(p.technologies) ? p.technologies : [],
-                    role: p.role || '',
-                    link: p.link || '',
-                  }))
-                : [],
-            }))
-          : [],
+        work_experience: workExpList,
         key_projects: Array.isArray(parsedData.key_projects)
           ? parsedData.key_projects.map((p: any) => ({
               name: p.name || 'Project',
@@ -331,9 +363,7 @@ ${rawCvText}
               link: p.link || '',
             }))
           : [],
-        technical_qualifications: Array.isArray(parsedData.technical_qualifications)
-          ? parsedData.technical_qualifications
-          : [],
+        technical_qualifications: combinedTech,
         categorized_qualifications: {
           frontend: Array.isArray(parsedData.categorized_qualifications?.frontend) ? parsedData.categorized_qualifications.frontend : [],
           backend: Array.isArray(parsedData.categorized_qualifications?.backend) ? parsedData.categorized_qualifications.backend : [],
@@ -350,33 +380,17 @@ ${rawCvText}
           tools: [],
           other: [],
         },
-        certifications: Array.isArray(parsedData.certifications)
-          ? parsedData.certifications.map((c: any, index: number) => ({
-              id: c.id || `cert-ai-${index + 1}`,
-              name: c.name || 'Certification',
-              issuer: c.issuer || '',
-              date: c.date || '',
-            }))
-          : [],
-        education: Array.isArray(parsedData.education)
-          ? parsedData.education.map((e: any, index: number) => ({
-              id: e.id || `edu-ai-${index + 1}`,
-              institution: e.institution || 'University',
-              degree: e.degree || '',
-              field_of_study: e.field_of_study || '',
-              start_date: e.start_date || '',
-              end_date: e.end_date || '',
-            }))
-          : [],
+        certifications: certsList,
+        education: eduList,
         languages: [],
         additional_information: [],
         meta: {
           extraction_confidence: 0.99,
           source_stats: {
-            work_experience_count: parsedData.work_experience?.length || 0,
-            skills_count: parsedData.technical_qualifications?.length || 0,
-            certifications_count: parsedData.certifications?.length || 0,
-            education_count: parsedData.education?.length || 0,
+            work_experience_count: workExpList.length,
+            skills_count: combinedTech.length,
+            certifications_count: certsList.length,
+            education_count: eduList.length,
           },
         },
       };

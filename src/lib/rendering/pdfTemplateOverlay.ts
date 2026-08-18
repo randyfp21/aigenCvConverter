@@ -20,6 +20,7 @@ export async function overlayCvOnPdfTemplate(
   try {
     const pdfDoc = await PDFDocument.load(templateBuffer);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+    const helveticaBoldOblique = await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique);
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
 
     const pages = pdfDoc.getPages();
@@ -145,7 +146,7 @@ export async function overlayCvOnPdfTemplate(
       x: marginX,
       y: currentY,
       size: 9.5,
-      font: helveticaBold,
+      font: helveticaBoldOblique,
       color: secondaryColor,
     });
 
@@ -171,7 +172,7 @@ export async function overlayCvOnPdfTemplate(
             x: marginX,
             y: currentY,
             size: 10,
-            font: helveticaBold,
+            font: helveticaBoldOblique,
             color: textColor,
           });
 
@@ -193,7 +194,7 @@ export async function overlayCvOnPdfTemplate(
             x: marginX,
             y: currentY,
             size: 9.5,
-            font: helveticaBold,
+            font: helveticaBoldOblique,
             color: secondaryColor,
           });
 

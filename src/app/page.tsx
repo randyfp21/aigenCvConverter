@@ -141,10 +141,30 @@ export default function Home() {
     }
   };
 
-  const handleConfirmExport = (confirmedCv: CanonicalCV) => {
+  const handleConfirmExport = async (confirmedCv: CanonicalCV) => {
     setProcessedCv(confirmedCv);
     setIsReviewModalOpen(false);
     setCurrentStep(5);
+
+    try {
+      const res = await fetch('/api/cv/convert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'render',
+          confirmedCv,
+          templateConfig: selectedTemplateConfig,
+          language: targetLanguage,
+        }),
+      });
+      const data = await res.json();
+      if (data.success && data.outputs) {
+        setOutputPdfUrl(data.outputs.pdfBase64);
+        setOutputDocxUrl(data.outputs.docxBase64);
+      }
+    } catch (err) {
+      console.warn('Failed to re-render output documents on user confirmation:', err);
+    }
   };
 
   const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
