@@ -46,7 +46,7 @@ Buat atau sesuaikan file `.env.local` di root direktori project:
 ```env
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/aigencv
 GEMINI_API_KEY=your_gemini_api_key_here
-PORT=3005
+PORT=3008
 ```
 
 ### 3. Instalasi Dependency & Dev Server
@@ -56,11 +56,11 @@ Jalankan perintah berikut pada terminal:
 # Install dependency project
 npm install
 
-# Jalankan server pengembangan (Port 3005)
+# Jalankan server pengembangan (Port 3008)
 npm run dev
 ```
 
-Buka browser dan akses `http://localhost:3005`.
+Buka browser dan akses `http://localhost:3008`.
 
 ---
 

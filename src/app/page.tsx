@@ -141,10 +141,15 @@ export default function Home() {
     }
   };
 
-  const handleConfirmExport = async (confirmedCv: CanonicalCV) => {
-    setProcessedCv(confirmedCv);
-    setIsReviewModalOpen(false);
-    setCurrentStep(5);
+  const [isReRendering, setIsReRendering] = useState<boolean>(false);
+
+  const handleReRenderWithTemplate = async (
+    newTemplate: CompanyTemplateConfig,
+    cvToRender: CanonicalCV | null = processedCv
+  ) => {
+    if (!cvToRender) return;
+    setSelectedTemplateConfig(newTemplate);
+    setIsReRendering(true);
 
     try {
       const res = await fetch('/api/cv/convert', {
@@ -152,8 +157,8 @@ export default function Home() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'render',
-          confirmedCv,
-          templateConfig: selectedTemplateConfig,
+          confirmedCv: cvToRender,
+          templateConfig: newTemplate,
           language: targetLanguage,
         }),
       });
@@ -163,8 +168,20 @@ export default function Home() {
         setOutputDocxUrl(data.outputs.docxBase64);
       }
     } catch (err) {
-      console.warn('Failed to re-render output documents on user confirmation:', err);
+      console.warn('Failed to re-render output documents on template change:', err);
+    } finally {
+      setIsReRendering(false);
     }
+  };
+
+  const handleConfirmExport = async (confirmedCv: CanonicalCV, targetTemplate?: CompanyTemplateConfig) => {
+    const tmpl = targetTemplate || selectedTemplateConfig;
+    setSelectedTemplateConfig(tmpl);
+    setProcessedCv(confirmedCv);
+    setIsReviewModalOpen(false);
+    setCurrentStep(5);
+
+    await handleReRenderWithTemplate(tmpl, confirmedCv);
   };
 
   const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
@@ -327,6 +344,8 @@ export default function Home() {
               candidateName={processedCv.personal_information.full_name || 'Candidate'}
               validationReport={validationReport || undefined}
               onConvertAgain={() => setCurrentStep(1)}
+              onSelectTemplate={(newTmpl) => handleReRenderWithTemplate(newTmpl)}
+              isReRendering={isReRendering}
             />
           )}
         </div>

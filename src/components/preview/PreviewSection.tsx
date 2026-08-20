@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { CompanyTemplateConfig, FinalValidationReport, TargetLanguage } from '@/types/cv';
-import { Download, FileText, CheckCircle2, ShieldCheck, RefreshCw, Eye } from 'lucide-react';
+import { Download, FileText, CheckCircle2, ShieldCheck, RefreshCw, Eye, Sparkles } from 'lucide-react';
+import { CompanyTemplateSelect } from '@/components/template/CompanyTemplateSelect';
 
 interface PreviewSectionProps {
   template: CompanyTemplateConfig;
@@ -10,6 +11,8 @@ interface PreviewSectionProps {
   candidateName: string;
   validationReport?: FinalValidationReport;
   onConvertAgain: () => void;
+  onSelectTemplate?: (template: CompanyTemplateConfig) => void;
+  isReRendering?: boolean;
 }
 
 export const PreviewSection: React.FC<PreviewSectionProps> = ({
@@ -20,6 +23,8 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
   candidateName,
   validationReport,
   onConvertAgain,
+  onSelectTemplate,
+  isReRendering = false,
 }) => {
   const [previewTab, setPreviewTab] = useState<'pdf' | 'report'>('pdf');
 
@@ -59,6 +64,23 @@ export const PreviewSection: React.FC<PreviewSectionProps> = ({
           </button>
         </div>
       </div>
+
+      {/* Switch Target Company Template Box (PostgreSQL Database Connected) */}
+      {onSelectTemplate && (
+        <div className="p-4 rounded-2xl bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-sm space-y-2">
+          <CompanyTemplateSelect
+            selectedTemplateId={template.id}
+            disabled={isReRendering}
+            onSelectTemplate={(newTmpl) => onSelectTemplate(newTmpl)}
+          />
+          {isReRendering && (
+            <p className="text-[11px] font-bold text-blue-600 dark:text-sky-400 animate-pulse flex items-center gap-1.5 pt-1">
+              <Sparkles className="w-3.5 h-3.5 text-sky-400" />
+              <span>Memformat Ulang &amp; Mengonversi CV Ke Template PT {template.company_name}...</span>
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Action Download Buttons Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -21,6 +21,8 @@ import {
   Trash2,
 } from 'lucide-react';
 
+import { CompanyTemplateSelect } from '@/components/template/CompanyTemplateSelect';
+
 export interface AiStatusInfo {
   statusLog: string[];
   modelUsed: string;
@@ -36,7 +38,7 @@ interface ReviewModalProps {
   language: TargetLanguage;
   aiStatus?: AiStatusInfo;
   onClose: () => void;
-  onConfirmExport: (finalCv: CanonicalCV) => void;
+  onConfirmExport: (finalCv: CanonicalCV, targetTemplate?: CompanyTemplateConfig) => void;
 }
 
 export const ReviewModal: React.FC<ReviewModalProps> = ({
@@ -47,6 +49,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
   onClose,
   onConfirmExport,
 }) => {
+  const [selectedTemplate, setSelectedTemplate] = useState<CompanyTemplateConfig>(template);
   const [candidateCv, setCandidateCv] = useState<CanonicalCV>(processedCv);
   const [showLogs, setShowLogs] = useState<boolean>(false);
 
@@ -74,7 +77,7 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
         linkedin: activeLink,
       },
     };
-    onConfirmExport(finalCv);
+    onConfirmExport(finalCv, selectedTemplate);
   };
 
   const portfolioLink = candidateCv.personal_information.portfolio_url || candidateCv.personal_information.website || candidateCv.personal_information.linkedin || '';
@@ -316,6 +319,14 @@ export const ReviewModal: React.FC<ReviewModalProps> = ({
               Email Pribadi &amp; No. HP disembunyikan. Anda dapat mengubah data di bawah ini, atau menyembunyikan/menampilkan link portfolio sesuai kebutuhan.
             </p>
           </div>
+        </div>
+
+        {/* Company Template Selector Box (PostgreSQL Database Connected) */}
+        <div className="p-4 rounded-2xl bg-slate-100/80 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-800 backdrop-blur-xl shadow-sm">
+          <CompanyTemplateSelect
+            selectedTemplateId={selectedTemplate.id}
+            onSelectTemplate={(newTmpl) => setSelectedTemplate(newTmpl)}
+          />
         </div>
 
         {/* Main Qualification Review Grid */}
