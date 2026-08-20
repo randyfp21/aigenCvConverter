@@ -13,6 +13,7 @@ if (typeof (global as any).DOMMatrix === 'undefined') {
 }
 
 import { NextRequest, NextResponse } from 'next/server';
+import { db, initDbSchema } from '@/lib/db';
 import { validateUploadedFile } from '@/lib/security/fileSanitizer';
 import { parsePdfBuffer } from '@/lib/parsers/pdfParser';
 import { parseDocxBuffer } from '@/lib/parsers/docxParser';
@@ -196,6 +197,36 @@ export async function POST(req: NextRequest) {
 
     const pdfBase64 = pdfBuffer.toString('base64');
     const docxBase64 = docxBuffer.toString('base64');
+
+    // Auto-save CV analysis result & draft to PostgreSQL Database Table `cv_history`
+    try {
+      await initDbSchema();
+      const cvId = `cv-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`;
+      await db.query(
+        `INSERT INTO cv_history (
+          id, candidate_name, candidate_role, template_id, template_code, company_name,
+          source_filename, target_language, extracted_cv_json, processed_cv_json,
+          pdf_base64, docx_base64, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
+        ON CONFLICT (id) DO NOTHING`,
+        [
+          cvId,
+          processedCv.personal_information?.full_name || 'Candidate Profile',
+          processedCv.role || 'Professional',
+          templateConfig.id,
+          templateConfig.code,
+          templateConfig.company_name,
+          fileMeta.name || 'Source_CV.pdf',
+          language,
+          JSON.stringify(canonicalCv),
+          JSON.stringify(processedCv),
+          `data:application/pdf;base64,${pdfBase64}`,
+          `data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,${docxBase64}`,
+        ]
+      );
+    } catch (e) {
+      console.warn('Failed to auto-save CV history to PostgreSQL database:', e);
+    }
 
     return NextResponse.json({
       success: true,

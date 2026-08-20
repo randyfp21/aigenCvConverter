@@ -187,3 +187,20 @@ export interface ConversionJob {
   outputPdfUrl?: string;
   outputDocxUrl?: string;
 }
+
+export interface CvHistoryItem {
+  id: string;
+  candidate_name: string;
+  candidate_role: string;
+  template_id: string;
+  template_code: string;
+  company_name: string;
+  source_filename: string;
+  target_language: TargetLanguage;
+  extracted_cv: CanonicalCV;
+  processed_cv: CanonicalCV;
+  pdf_base64?: string;
+  docx_base64?: string;
+  created_at: string;
+  updated_at: string;
+}

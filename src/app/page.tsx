@@ -10,6 +10,7 @@ import { LanguageSelector } from '@/components/language/LanguageSelector';
 import { EnhancementSection } from '@/components/enhancement/EnhancementSection';
 import { ReviewModal, AiStatusInfo } from '@/components/review/ReviewModal';
 import { PreviewSection } from '@/components/preview/PreviewSection';
+import { CvHistorySection } from '@/components/history/CvHistorySection';
 import { COMPANY_TEMPLATES } from '@/lib/templates/companies';
 import { fetchTemplatesFromPgDatabase } from '@/lib/templates/templateManager';
 import {
@@ -18,6 +19,7 @@ import {
   FileMetadata,
   FinalValidationReport,
   TargetLanguage,
+  CvHistoryItem,
 } from '@/types/cv';
 import { ArrowRight, Sparkles, ShieldCheck, CheckCircle2, Database } from 'lucide-react';
 
@@ -184,6 +186,32 @@ export default function Home() {
     await handleReRenderWithTemplate(tmpl, confirmedCv);
   };
 
+  const handleOpenDraftFromHistory = (item: CvHistoryItem) => {
+    setExtractedCv(item.extracted_cv);
+    setProcessedCv(item.processed_cv);
+    setTargetLanguage(item.target_language);
+
+    const matchTmpl = COMPANY_TEMPLATES.find((t) => t.id === item.template_id);
+    if (matchTmpl) {
+      setSelectedTemplateConfig(matchTmpl);
+    }
+    setIsReviewModalOpen(true);
+  };
+
+  const handlePreviewOutputFromHistory = (item: CvHistoryItem) => {
+    setExtractedCv(item.extracted_cv);
+    setProcessedCv(item.processed_cv);
+    setTargetLanguage(item.target_language);
+    if (item.pdf_base64) setOutputPdfUrl(item.pdf_base64);
+    if (item.docx_base64) setOutputDocxUrl(item.docx_base64);
+
+    const matchTmpl = COMPANY_TEMPLATES.find((t) => t.id === item.template_id);
+    if (matchTmpl) {
+      setSelectedTemplateConfig(matchTmpl);
+    }
+    setCurrentStep(5);
+  };
+
   const isValidateButtonEnabled = Boolean(selectedFile || isSampleMode);
 
   return (
@@ -233,6 +261,12 @@ export default function Home() {
               Unggah CV kandidat, pilih/edit PT (Logo top-right, warna separator, font &amp; border), dan hasilkan CV resmi.
             </p>
           </div>
+
+          {/* PostgreSQL CV History Section */}
+          <CvHistorySection
+            onOpenDraft={handleOpenDraftFromHistory}
+            onPreviewOutput={handlePreviewOutputFromHistory}
+          />
 
           {/* STEP 1 to 4 Flow */}
           {currentStep <= 4 && (
