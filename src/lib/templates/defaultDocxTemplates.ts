@@ -30,7 +30,9 @@ export async function createOfficialCompanyDocxTemplate(
   fontFamily = 'Calibri',
   showPageBorder = false,
   pageBorderColor = '#000000',
-  pageBorderWidth = 1
+  pageBorderWidth = 1,
+  showCompanyLogo = true,
+  showCompanyFooter = true
 ): Promise<Buffer> {
   const cleanPrimary = (primaryColorHex || '#0F172A').replace('#', '');
   const cleanBorderColor = (pageBorderColor || '#000000').replace('#', '');
@@ -70,7 +72,7 @@ export async function createOfficialCompanyDocxTemplate(
                   new TableRow({
                     children: [
                       new TableCell({
-                        width: { size: 70, type: WidthType.PERCENTAGE },
+                        width: { size: showCompanyLogo ? 70 : 100, type: WidthType.PERCENTAGE },
                         borders: {
                           top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
                           bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
@@ -91,29 +93,33 @@ export async function createOfficialCompanyDocxTemplate(
                           }),
                         ],
                       }),
-                      new TableCell({
-                        width: { size: 30, type: WidthType.PERCENTAGE },
-                        borders: {
-                          top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                          bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                          left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                          right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                        },
-                        children: [
-                          new Paragraph({
-                            alignment: AlignmentType.RIGHT,
-                            children: [
-                              new TextRun({
-                                text: `[${companyCode || 'AIGEN'}] OFFICIAL PROFILE`,
-                                bold: true,
-                                size: 14,
-                                color: cleanPrimary,
-                                font: fontFamily,
-                              }),
-                            ],
-                          }),
-                        ],
-                      }),
+                      ...(showCompanyLogo
+                        ? [
+                            new TableCell({
+                              width: { size: 30, type: WidthType.PERCENTAGE },
+                              borders: {
+                                top: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                                bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                                left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                                right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                              },
+                              children: [
+                                new Paragraph({
+                                  alignment: AlignmentType.RIGHT,
+                                  children: [
+                                    new TextRun({
+                                      text: `[${companyCode || 'AIGEN'}] OFFICIAL PROFILE`,
+                                      bold: true,
+                                      size: 14,
+                                      color: cleanPrimary,
+                                      font: fontFamily,
+                                    }),
+                                  ],
+                                }),
+                              ],
+                            }),
+                          ]
+                        : []),
                     ],
                   }),
                 ],
@@ -121,23 +127,24 @@ export async function createOfficialCompanyDocxTemplate(
             ],
           }),
         },
-        footers: {
-          default: new Footer({
-            children: [
-              new Table({
-                width: { size: 100, type: WidthType.PERCENTAGE },
-                rows: [
-                  new TableRow({
-                    children: [
-                      new TableCell({
-                        shading: { fill: cleanPrimary },
-                        margins: { top: 100, bottom: 100, left: 180, right: 180 },
-                        borders: {
-                          top: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' },
-                          bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                          left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                          right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
-                        },
+        footers: showCompanyFooter
+          ? {
+              default: new Footer({
+                children: [
+                  new Table({
+                    width: { size: 100, type: WidthType.PERCENTAGE },
+                    rows: [
+                      new TableRow({
+                        children: [
+                          new TableCell({
+                            shading: { fill: cleanPrimary },
+                            margins: { top: 100, bottom: 100, left: 180, right: 180 },
+                            borders: {
+                              top: { style: BorderStyle.SINGLE, size: 8, color: '0284C7' },
+                              bottom: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                              left: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                              right: { style: BorderStyle.NONE, size: 0, color: 'auto' },
+                            },
                         children: [
                           new Paragraph({
                             alignment: AlignmentType.CENTER,
@@ -158,8 +165,9 @@ export async function createOfficialCompanyDocxTemplate(
                 ],
               }),
             ],
-          }),
-        },
+          })
+        }
+      : {},
         children: [
           // Candidate Name & Role Header
           new Paragraph({

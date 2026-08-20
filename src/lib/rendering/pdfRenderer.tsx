@@ -318,6 +318,9 @@ export async function generatePdfBuffer(
     },
   });
 
+  const showLogo = template.show_company_logo ?? true;
+  const showFooter = template.show_company_footer ?? true;
+
   const PdfDocument = (
     <Document title={`Candidate Profile - ${cv.personal_information.full_name}`}>
       <Page size="A4" style={styles.page}>
@@ -338,61 +341,63 @@ export async function generatePdfBuffer(
             ) : null}
           </View>
 
-          <View style={styles.headerRight}>
-            {rasterLogoSrc ? (
-              <Image src={rasterLogoSrc} style={styles.logoImage} />
-            ) : parsedSvg ? (
-              <Svg viewBox="0 0 100 100" style={styles.logoImage}>
-                {parsedSvg.rect && (
-                  <Rect
-                    x={parsedSvg.rect.x || 0}
-                    y={parsedSvg.rect.y || 0}
-                    width={parsedSvg.rect.width}
-                    height={parsedSvg.rect.height}
-                    rx={parsedSvg.rect.rx || 0}
-                    fill={parsedSvg.rect.fill || primaryColor}
-                  />
-                )}
-                {parsedSvg.paths.map((p, pIdx) => (
-                  <Path
-                    key={`p-${pIdx}`}
-                    d={p.d}
-                    stroke={p.stroke}
-                    strokeWidth={p.strokeWidth}
-                    strokeLinecap={p.strokeLinecap}
-                    strokeLinejoin={p.strokeLinejoin}
-                    fill={p.fill}
-                  />
-                ))}
-                {parsedSvg.circles.map((c, cIdx) => (
-                  <Circle
-                    key={`c-${cIdx}`}
-                    cx={c.cx}
-                    cy={c.cy}
-                    r={c.r}
-                    fill={c.fill}
-                    stroke={c.stroke}
-                    strokeWidth={c.strokeWidth}
-                  />
-                ))}
-              </Svg>
-            ) : (
-              <View
-                style={{
-                  width: 44,
-                  height: 44,
-                  backgroundColor: primaryColor,
-                  borderRadius: 6,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>
-                  {(company_name || 'PT').substring(0, 4).toUpperCase()}
-                </Text>
-              </View>
-            )}
-          </View>
+          {showLogo && (
+            <View style={styles.headerRight}>
+              {rasterLogoSrc ? (
+                <Image src={rasterLogoSrc} style={styles.logoImage} />
+              ) : parsedSvg ? (
+                <Svg viewBox="0 0 100 100" style={styles.logoImage}>
+                  {parsedSvg.rect && (
+                    <Rect
+                      x={parsedSvg.rect.x || 0}
+                      y={parsedSvg.rect.y || 0}
+                      width={parsedSvg.rect.width}
+                      height={parsedSvg.rect.height}
+                      rx={parsedSvg.rect.rx || 0}
+                      fill={parsedSvg.rect.fill || primaryColor}
+                    />
+                  )}
+                  {parsedSvg.paths.map((p, pIdx) => (
+                    <Path
+                      key={`p-${pIdx}`}
+                      d={p.d}
+                      stroke={p.stroke}
+                      strokeWidth={p.strokeWidth}
+                      strokeLinecap={p.strokeLinecap}
+                      strokeLinejoin={p.strokeLinejoin}
+                      fill={p.fill}
+                    />
+                  ))}
+                  {parsedSvg.circles.map((c, cIdx) => (
+                    <Circle
+                      key={`c-${cIdx}`}
+                      cx={c.cx}
+                      cy={c.cy}
+                      r={c.r}
+                      fill={c.fill}
+                      stroke={c.stroke}
+                      strokeWidth={c.strokeWidth}
+                    />
+                  ))}
+                </Svg>
+              ) : (
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    backgroundColor: primaryColor,
+                    borderRadius: 6,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text style={{ color: '#FFFFFF', fontSize: 10, fontWeight: 'bold' }}>
+                    {(company_name || 'PT').substring(0, 4).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
         </View>
 
         {/* Dynamic Compact Sections */}
@@ -517,11 +522,13 @@ export async function generatePdfBuffer(
         })}
 
         {/* Color Block Footer Banner on EVERY PAGE */}
-        <View style={styles.footerBanner} fixed>
-          <Text style={styles.footerText}>
-            {company_name}  •  {company_address || 'Jakarta, Indonesia'}  •  {company_website || 'www.company.com'}  •  Tel: {company_phone || '+62 21 500 8000'}
-          </Text>
-        </View>
+        {showFooter && (
+          <View style={styles.footerBanner} fixed>
+            <Text style={styles.footerText}>
+              {company_name}  •  {company_address || 'Jakarta, Indonesia'}  •  {company_website || 'www.company.com'}  •  Tel: {company_phone || '+62 21 500 8000'}
+            </Text>
+          </View>
+        )}
       </Page>
     </Document>
   );

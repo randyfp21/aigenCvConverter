@@ -24,7 +24,9 @@ export async function renderDocxFromTemplate(
       template.theme.font_family || 'Calibri',
       template.theme.show_page_border ?? true,
       template.theme.page_border_color || '#000000',
-      template.theme.page_border_width || 1
+      template.theme.page_border_width || 1,
+      template.show_company_logo ?? true,
+      template.show_company_footer ?? true
     );
   }
 

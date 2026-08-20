@@ -84,21 +84,64 @@ export const CompanyTemplateSelect: React.FC<CompanyTemplateSelectProps> = ({
       </div>
 
       {selectedTemplate && (
-        <div className="mt-2 flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-400 backdrop-blur-md">
-          <span className="truncate">
-            Format Dokumen: <strong className="text-slate-900 dark:text-white font-bold">{selectedTemplate.company_name}</strong> ({selectedTemplate.code})
-          </span>
-          <div className="flex items-center space-x-1.5 shrink-0 ml-2">
-            <span
-              className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-xs"
-              style={{ backgroundColor: selectedTemplate.theme?.primary_color || '#0F172A' }}
-              title="Warna Utama"
-            />
-            <span
-              className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-xs"
-              style={{ backgroundColor: selectedTemplate.theme?.separator_color || selectedTemplate.theme?.secondary_color || '#0284C7' }}
-              title="Warna Separator"
-            />
+        <div className="mt-3 space-y-2">
+          {/* Interactive Options: Logo Company & Footer Perusahaan */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 p-3 rounded-2xl bg-white/50 dark:bg-slate-900/50 border border-slate-200/80 dark:border-slate-800 text-xs backdrop-blur-md">
+            {/* Toggle Logo Company */}
+            <label className="flex items-center space-x-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={selectedTemplate.show_company_logo ?? true}
+                disabled={disabled}
+                onChange={(e) => {
+                  onSelectTemplate({
+                    ...selectedTemplate,
+                    show_company_logo: e.target.checked,
+                  });
+                }}
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 accent-blue-600"
+              />
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                🖼️ Tampilkan Logo Company
+              </span>
+            </label>
+
+            {/* Toggle Footer Perusahaan */}
+            <label className="flex items-center space-x-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={selectedTemplate.show_company_footer ?? true}
+                disabled={disabled}
+                onChange={(e) => {
+                  onSelectTemplate({
+                    ...selectedTemplate,
+                    show_company_footer: e.target.checked,
+                  });
+                }}
+                className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500 accent-blue-600"
+              />
+              <span className="font-bold text-slate-800 dark:text-slate-200">
+                🏢 Tampilkan Footer Perusahaan
+              </span>
+            </label>
+          </div>
+
+          <div className="flex items-center justify-between px-3.5 py-2 rounded-xl bg-slate-100/70 dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800 text-[11px] font-semibold text-slate-600 dark:text-slate-400 backdrop-blur-md">
+            <span className="truncate">
+              Format Dokumen: <strong className="text-slate-900 dark:text-white font-bold">{selectedTemplate.company_name}</strong> ({selectedTemplate.code})
+            </span>
+            <div className="flex items-center space-x-1.5 shrink-0 ml-2">
+              <span
+                className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-xs"
+                style={{ backgroundColor: selectedTemplate.theme?.primary_color || '#0F172A' }}
+                title="Warna Utama"
+              />
+              <span
+                className="w-3.5 h-3.5 rounded-full border border-white/60 shadow-xs"
+                style={{ backgroundColor: selectedTemplate.theme?.separator_color || selectedTemplate.theme?.secondary_color || '#0284C7' }}
+                title="Warna Separator"
+              />
+            </div>
           </div>
         </div>
       )}

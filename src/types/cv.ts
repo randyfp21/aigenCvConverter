@@ -131,6 +131,8 @@ export interface CompanyTemplateConfig {
   company_address?: string;
   company_website?: string;
   company_phone?: string;
+  show_company_logo?: boolean;
+  show_company_footer?: boolean;
   isCustomUploaded?: boolean;
   uploadedAt?: string;
   templateDocxBuffer?: Buffer;
